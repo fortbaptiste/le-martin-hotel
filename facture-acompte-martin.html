@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FA-2026-001 — VisionIA × Le Martin Hotel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            grotesk: ['Space Grotesk', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            ink: '#000000',
+            paper: '#ffffff',
+            grey: { 100: '#fafafa', 200: '#f0f0f0', 300: '#e0e0e0', 400: '#999999', 500: '#666666', 600: '#444444', 700: '#222222' },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ===== PRINT: 1 PAGE A4 STRICT ===== */
+    @page { size: A4; margin: 0; }
+    @media print {
+      html, body { width: 210mm; height: 297mm; overflow: hidden; background: #fff !important; }
+      .no-print { display: none !important; }
+      .invoice-page { width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 12mm 14mm 10mm 14mm !important; }
+      .screen-bg { display: none !important; }
+      .animate-el { opacity: 1 !important; transform: none !important; }
+      .hover-line::after { display: none !important; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+
+    /* ===== SCREEN STYLES ===== */
+    body { background: #f5f5f5; font-family: 'Inter', sans-serif; }
+
+    .invoice-page {
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Geometric corner marks */
+    .corner-mark { position: absolute; width: 24px; height: 24px; }
+    .corner-mark::before, .corner-mark::after { content:''; position: absolute; background: #000; }
+    .corner-mark.tl { top: 8mm; left: 8mm; }
+    .corner-mark.tl::before { top: 0; left: 0; width: 1px; height: 100%; }
+    .corner-mark.tl::after { top: 0; left: 0; height: 1px; width: 100%; }
+    .corner-mark.tr { top: 8mm; right: 8mm; }
+    .corner-mark.tr::before { top: 0; right: 0; width: 1px; height: 100%; }
+    .corner-mark.tr::after { top: 0; right: 0; height: 1px; width: 100%; }
+    .corner-mark.bl { bottom: 8mm; left: 8mm; }
+    .corner-mark.bl::before { bottom: 0; left: 0; width: 1px; height: 100%; }
+    .corner-mark.bl::after { bottom: 0; left: 0; height: 1px; width: 100%; }
+    .corner-mark.br { bottom: 8mm; right: 8mm; }
+    .corner-mark.br::before { bottom: 0; right: 0; width: 1px; height: 100%; }
+    .corner-mark.br::after { bottom: 0; right: 0; height: 1px; width: 100%; }
+
+    /* Hover animations */
+    .hover-line { position: relative; transition: all 0.3s ease; }
+    .hover-line::after {
+      content: ''; position: absolute; left: 0; bottom: -1px;
+      width: 0; height: 1px; background: #000;
+      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .hover-line:hover::after { width: 100%; }
+    .hover-line:hover { background: rgba(0,0,0,0.015); }
+
+    .magnetic { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    /* Amount reveal */
+    @keyframes amount-slide { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    @keyframes line-draw { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+    @keyframes fade-up { 0% { opacity: 0; transform: translateY(16px); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes stamp-in { 0% { transform: scale(3) rotate(-12deg); opacity: 0; } 50% { transform: scale(0.92) rotate(-12deg); opacity: 0.7; } 100% { transform: scale(1) rotate(-12deg); opacity: 1; } }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @keyframes pulse-dot { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    @keyframes shimmer { 0% { left: -30%; } 100% { left: 130%; } }
+    @keyframes counter-roll { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+    @keyframes border-trace {
+      0% { clip-path: polygon(0 0, 0 0, 0 0, 0 0); }
+      25% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+      50% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 0); }
+      75% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+      100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    }
+    @keyframes confetti-fall { 0% { transform: translateY(-10vh) rotate(0); opacity: 1; } 100% { transform: translateY(110vh) rotate(1080deg); opacity: 0; } }
+    @keyframes glitch {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-1px, 1px); }
+      40% { transform: translate(1px, -1px); }
+      60% { transform: translate(-1px, -1px); }
+      80% { transform: translate(1px, 1px); }
+    }
+
+    .animate-el { opacity: 0; }
+    .animate-el.visible { animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+    .line-reveal { transform: scaleX(0); transform-origin: left; }
+    .line-reveal.visible { animation: line-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+    .amount-reveal .char { display: inline-block; opacity: 0; transform: translateY(100%); }
+    .amount-reveal.visible .char {
+      animation: amount-slide 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .stamp-el { opacity: 0; }
+    .stamp-el.visible { animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* Copy toast */
+    .toast {
+      position: fixed; top: 24px; right: 24px;
+      background: #000; color: #fff;
+      padding: 12px 24px; font-size: 13px; font-weight: 500;
+      z-index: 9999; transform: translateY(-20px); opacity: 0;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      font-family: 'Inter', sans-serif; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Confetti */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+    .confetti-bit { position: absolute; top: -5px; animation: confetti-fall linear forwards; }
+
+    /* IBAN hover */
+    .iban-letter { display: inline-block; transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
+    .iban-letter:hover { transform: translateY(-3px); }
+
+    /* Shimmer on amount */
+    .shimmer-bar {
+      position: absolute; top: 0; height: 100%; width: 30%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* Secret cursor */
+    .secret-cursor:hover { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18'><text y='14' font-size='14'>◆</text></svg>") 9 9, pointer; }
+
+    /* Progress dots */
+    .dot-pulse { animation: pulse-dot 2s ease-in-out infinite; }
+    .dot-pulse:nth-child(2) { animation-delay: 0.3s; }
+    .dot-pulse:nth-child(3) { animation-delay: 0.6s; }
+
+    /* Bar floating */
+    .float-bar {
+      transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Ripple */
+    @keyframes ripple { 0% { transform: scale(0); opacity: 0.4; } 100% { transform: scale(6); opacity: 0; } }
+    .ripple { position: absolute; border-radius: 50%; background: rgba(0,0,0,0.06); width: 16px; height: 16px; animation: ripple 0.7s ease-out forwards; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast no-print">IBAN copi&eacute;</div>
+  <div id="confetti" class="no-print"></div>
+
+  <!-- ===== FLOATING ACTION BAR ===== -->
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print float-bar" id="action-bar" style="opacity:0; transform: translateX(-50%) translateY(24px);">
+    <div class="bg-black/95 backdrop-blur-xl flex items-center gap-1 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-white/5" style="padding: 6px;">
+      <button onclick="window.print()" class="magnetic flex items-center gap-2 text-white/80 hover:text-white text-xs font-medium px-4 py-2.5 hover:bg-white/10 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Imprimer
+      </button>
+      <div class="w-px h-5 bg-white/10"></div>
+      <button onclick="copyIBAN()" class="magnetic flex items-center gap-2 text-white/80 hover:text-white text-xs font-medium px-4 py-2.5 hover:bg-white/10 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+        Copier IBAN
+      </button>
+      <div class="w-px h-5 bg-white/10"></div>
+      <button onclick="window.print()" class="magnetic flex items-center gap-2 bg-white text-black text-xs font-bold px-5 py-2.5 hover:bg-grey-200 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== INVOICE PAGE ===== -->
+  <div class="max-w-[210mm] mx-auto my-8 md:my-12 no-print:px-4">
+    <div class="invoice-page shadow-[0_4px_80px_rgba(0,0,0,0.08)] relative" style="padding: 40px 48px 32px 48px; aspect-ratio: 210/297;">
+
+      <!-- Corner marks -->
+      <div class="corner-mark tl"></div>
+      <div class="corner-mark tr"></div>
+      <div class="corner-mark bl"></div>
+      <div class="corner-mark br"></div>
+
+      <!-- ===== ROW 1 : HEADER ===== -->
+      <div class="flex justify-between items-start animate-el" data-delay="0">
+        <!-- Left: brand -->
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-black flex items-center justify-center secret-cursor" id="logo-egg" title="">
+              <span class="text-white font-grotesk font-bold text-base leading-none">V</span>
+            </div>
+            <div>
+              <p class="font-grotesk text-[15px] font-extrabold tracking-tight leading-none">VISION<span class="font-light">IA</span></p>
+              <p class="text-[8px] tracking-[0.35em] text-grey-500 uppercase mt-1 font-medium">Solutions IA sur mesure</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: invoice meta -->
+        <div class="text-right">
+          <p class="font-grotesk text-[28px] font-extrabold tracking-tighter leading-none">FACTURE</p>
+          <p class="font-mono text-[10px] tracking-wider text-grey-500 mt-1.5">N° FA-2026-001</p>
+        </div>
+      </div>
+
+      <!-- Thick black line -->
+      <div class="h-[3px] bg-black mt-5 mb-5 line-reveal" data-delay="100"></div>
+
+      <!-- ===== ROW 2 : META BAND ===== -->
+      <div class="flex justify-between items-center mb-5 animate-el" data-delay="150">
+        <div class="flex gap-8">
+          <div>
+            <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold">Date d'&eacute;mission</p>
+            <p class="font-mono text-[11px] font-semibold mt-0.5">28/02/2026</p>
+          </div>
+          <div>
+            <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold">&Eacute;ch&eacute;ance</p>
+            <p class="font-mono text-[11px] font-semibold mt-0.5">&Agrave; r&eacute;ception</p>
+          </div>
+          <div>
+            <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold">R&eacute;f&eacute;rence projet</p>
+            <p class="font-mono text-[11px] font-semibold mt-0.5">IA-MARTIN-2026</p>
+          </div>
+        </div>
+        <div class="border border-black px-3 py-1">
+          <p class="text-[8px] font-bold tracking-[0.2em] uppercase">Acompte 30&nbsp;%</p>
+        </div>
+      </div>
+
+      <!-- ===== ROW 3 : PARTIES ===== -->
+      <div class="grid grid-cols-2 gap-8 mb-5 animate-el" data-delay="200">
+        <!-- Emetteur -->
+        <div>
+          <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold mb-2">&Eacute;metteur</p>
+          <p class="font-grotesk text-[12px] font-bold leading-tight">Baptiste Fort</p>
+          <p class="text-[10px] text-grey-600 leading-relaxed mt-1">1 Rue du Roi Dagobert<br>94130 Nogent-sur-Marne, France</p>
+          <div class="flex gap-4 mt-1.5">
+            <p class="text-[8.5px] text-grey-500"><span class="font-semibold text-grey-700">SIRET</span> <span class="font-mono">909 392 474 00021</span></p>
+            <p class="text-[8.5px] text-grey-500"><span class="font-semibold text-grey-700">NAF</span> <span class="font-mono">6201Z</span></p>
+          </div>
+        </div>
+        <!-- Client -->
+        <div>
+          <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold mb-2">Destinataire</p>
+          <p class="font-grotesk text-[12px] font-bold leading-tight">LE M MARTIN HOTEL</p>
+          <p class="text-[9px] text-grey-500 font-medium">SAS &mdash; Capital 3 000,00 &euro;</p>
+          <p class="text-[10px] text-grey-600 leading-relaxed mt-1">Le Martin Boutique Hotel, Lot 17<br>97150 Saint-Martin</p>
+          <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5">
+            <p class="text-[8.5px] text-grey-500"><span class="font-semibold text-grey-700">SIRET</span> <span class="font-mono">852 665 470 00021</span></p>
+            <p class="text-[8.5px] text-grey-500"><span class="font-semibold text-grey-700">TVA</span> <span class="font-mono">FR13 852 665 470</span></p>
+            <p class="text-[8.5px] text-grey-500"><span class="font-semibold text-grey-700">RCS</span> <span class="font-mono">Basse-Terre</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thin line -->
+      <div class="h-px bg-grey-300 line-reveal" data-delay="250"></div>
+
+      <!-- ===== ROW 4 : OBJET ===== -->
+      <div class="py-3 animate-el" data-delay="280">
+        <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold mb-1">Objet</p>
+        <p class="text-[10px] text-grey-700 leading-relaxed">Acompte de 30 % &mdash; Conception, d&eacute;veloppement et d&eacute;ploiement d'une solution d'intelligence artificielle de traitement automatis&eacute; des emails pour Le Martin Boutique Hotel. Int&eacute;gration PMS Tha&iuml;s, moteur IA Claude (Anthropic), application Python sur mesure, h&eacute;bergement serveur Hostinger.</p>
+      </div>
+
+      <!-- ===== ROW 5 : TABLE ===== -->
+      <div class="animate-el" data-delay="350">
+        <!-- Header -->
+        <div class="grid grid-cols-12 gap-2 bg-black text-white px-3 py-2">
+          <div class="col-span-1 text-[7px] uppercase tracking-widest font-bold">#</div>
+          <div class="col-span-7 text-[7px] uppercase tracking-widest font-bold">D&eacute;signation</div>
+          <div class="col-span-2 text-[7px] uppercase tracking-widest font-bold text-right">P.U. HT</div>
+          <div class="col-span-2 text-[7px] uppercase tracking-widest font-bold text-right">Montant</div>
+        </div>
+
+        <!-- Row 1 -->
+        <div class="hover-line grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-grey-200 cursor-default" onclick="ripple(event, this)">
+          <div class="col-span-1"><span class="font-mono text-[9px] font-bold text-grey-400">01</span></div>
+          <div class="col-span-7">
+            <p class="text-[10.5px] font-semibold leading-tight">Audit &amp; conception du syst&egrave;me IA</p>
+            <p class="text-[8.5px] text-grey-400 mt-0.5 leading-snug">Analyse des flux emails, cartographie des demandes, r&egrave;gles m&eacute;tier, prompt syst&egrave;me personnalis&eacute;, sc&eacute;narios d'escalade intelligente</p>
+          </div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">600,00</p></div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">600,00</p></div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="hover-line grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-grey-200 cursor-default" onclick="ripple(event, this)">
+          <div class="col-span-1"><span class="font-mono text-[9px] font-bold text-grey-400">02</span></div>
+          <div class="col-span-7">
+            <p class="text-[10.5px] font-semibold leading-tight">D&eacute;veloppement &amp; int&eacute;gration technique</p>
+            <p class="text-[8.5px] text-grey-400 mt-0.5 leading-snug">Serveur Hostinger, application Python sur mesure, API Tha&iuml;s PMS (disponibilit&eacute;s &amp; tarifs temps r&eacute;el), API Claude Anthropic, pipeline multilingue FR/EN</p>
+          </div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">1 400,00</p></div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">1 400,00</p></div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="hover-line grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-grey-200 cursor-default" onclick="ripple(event, this)">
+          <div class="col-span-1"><span class="font-mono text-[9px] font-bold text-grey-400">03</span></div>
+          <div class="col-span-7">
+            <p class="text-[10.5px] font-semibold leading-tight">Tests, d&eacute;ploiement &amp; formation</p>
+            <p class="text-[8.5px] text-grey-400 mt-0.5 leading-snug">Tests en conditions r&eacute;elles, ajustement IA, mise en production, formation &eacute;quipe sur le tableau de bord, documentation utilisateur</p>
+          </div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">500,00</p></div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-semibold">500,00</p></div>
+        </div>
+
+        <!-- Row 4: offert -->
+        <div class="hover-line grid grid-cols-12 gap-2 px-3 py-2.5 border-b border-grey-300 cursor-default" onclick="ripple(event, this)">
+          <div class="col-span-1"><span class="font-mono text-[9px] font-bold text-grey-400">04</span></div>
+          <div class="col-span-7">
+            <p class="text-[10.5px] font-semibold leading-tight">Support post-d&eacute;ploiement &mdash; 30 jours</p>
+            <p class="text-[8.5px] text-grey-400 mt-0.5 leading-snug">Maintenance, optimisation des prompts, monitoring syst&egrave;me, ajustements et assistance technique</p>
+            <span class="inline-block mt-0.5 border border-black px-1.5 py-px text-[7px] font-bold uppercase tracking-wider">Offert</span>
+          </div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] text-grey-400 line-through">300,00</p></div>
+          <div class="col-span-2 text-right"><p class="font-mono text-[10.5px] font-bold">0,00</p></div>
+        </div>
+      </div>
+
+      <!-- ===== ROW 6 : TOTALS ===== -->
+      <div class="animate-el" data-delay="450">
+        <div class="flex justify-end">
+          <div class="w-[55%]">
+            <!-- Total HT -->
+            <div class="flex justify-between px-3 py-1.5 border-b border-grey-200">
+              <p class="text-[9px] text-grey-500 font-medium">Total HT</p>
+              <p class="font-mono text-[10.5px] font-semibold">2 500,00 &euro;</p>
+            </div>
+            <!-- Support offert -->
+            <div class="flex justify-between px-3 py-1.5 border-b border-grey-200">
+              <p class="text-[9px] text-grey-500 font-medium">Support offert (valeur 300 &euro;)</p>
+              <p class="font-mono text-[10.5px] font-semibold">+ 300,00 &euro;</p>
+            </div>
+            <!-- Total projet -->
+            <div class="flex justify-between px-3 py-1.5 border-b border-grey-200">
+              <p class="text-[9px] font-bold">Total projet HT</p>
+              <p class="font-mono text-[10.5px] font-bold">2 800,00 &euro;</p>
+            </div>
+            <!-- TVA -->
+            <div class="flex justify-between px-3 py-1.5 border-b border-grey-200">
+              <p class="text-[9px] text-grey-500 font-medium">TVA (art. 293 B CGI)</p>
+              <p class="font-mono text-[10.5px] text-grey-400">Non applicable</p>
+            </div>
+            <!-- Acompte 30% -->
+            <div class="flex justify-between px-3 py-1.5 border-b border-grey-300">
+              <p class="text-[9px] text-grey-500 font-medium">Acompte 30&nbsp;%</p>
+              <p class="font-mono text-[10.5px] text-grey-400">Solde restant&nbsp;: 1 960,00 &euro;</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- NET A PAYER -->
+        <div class="flex justify-end mt-1.5">
+          <div class="w-[55%] bg-black text-white px-4 py-3 flex justify-between items-center relative overflow-hidden" id="total-block">
+            <div class="shimmer-bar no-print"></div>
+            <div>
+              <p class="text-[7px] uppercase tracking-[0.35em] font-bold text-white/50">Net &agrave; payer</p>
+              <p class="text-[7px] text-white/30 font-mono mt-0.5">Huit cent quarante euros</p>
+            </div>
+            <p class="font-grotesk text-[32px] font-extrabold tracking-tighter leading-none amount-reveal" id="amount">
+              <span class="char" style="animation-delay:0.1s">8</span><span class="char" style="animation-delay:0.15s">4</span><span class="char" style="animation-delay:0.2s">0</span><span class="char" style="animation-delay:0.25s">,</span><span class="char" style="animation-delay:0.3s">0</span><span class="char" style="animation-delay:0.35s">0</span><span class="char" style="animation-delay:0.45s">&thinsp;</span><span class="char" style="animation-delay:0.5s">&euro;</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ROW 7 : PROGRESS BAR ===== -->
+      <div class="mt-4 mb-3 animate-el" data-delay="550">
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <div class="flex justify-between mb-1">
+              <p class="text-[7px] uppercase tracking-[0.25em] text-grey-400 font-bold">Avancement du paiement</p>
+              <p class="font-mono text-[8px] font-bold" id="pct-label">0 %</p>
+            </div>
+            <div class="h-[3px] bg-grey-200 relative overflow-hidden">
+              <div class="h-full bg-black transition-all duration-[2s] ease-out" id="progress" style="width:0%"></div>
+            </div>
+            <div class="flex justify-between mt-0.5">
+              <p class="text-[7px] text-grey-400">840 &euro; &mdash; ce document</p>
+              <p class="text-[7px] text-grey-400">1 960 &euro; &mdash; &agrave; la livraison</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ROW 8 : BANK DETAILS ===== -->
+      <div class="border border-black p-3 animate-el" data-delay="600">
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-5">
+            <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold mb-2">Coordonn&eacute;es bancaires</p>
+            <div class="space-y-1">
+              <div class="flex gap-2">
+                <span class="text-[8px] text-grey-400 w-12 flex-shrink-0">Titulaire</span>
+                <span class="text-[9px] font-semibold">BAPTISTE FORT</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-[8px] text-grey-400 w-12 flex-shrink-0">Banque</span>
+                <span class="text-[9px] font-semibold">CREDIT MUTUEL</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-[8px] text-grey-400 w-12 flex-shrink-0">BIC</span>
+                <span class="font-mono text-[9px] font-semibold tracking-wide">CMCIFR2A</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-span-7">
+            <p class="text-[7px] uppercase tracking-[0.3em] text-grey-400 font-bold mb-2">IBAN</p>
+            <button onclick="copyIBAN()" class="font-mono text-[12px] font-bold tracking-[0.12em] hover:tracking-[0.18em] transition-all duration-500 cursor-pointer group" id="iban-btn" title="Cliquer pour copier">
+              <span class="iban-letter">F</span><span class="iban-letter">R</span><span class="iban-letter">7</span><span class="iban-letter">6</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">1</span><span class="iban-letter">0</span><span class="iban-letter">2</span><span class="iban-letter">7</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">8</span><span class="iban-letter">0</span><span class="iban-letter">6</span><span class="iban-letter">0</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">2</span><span class="iban-letter">0</span><span class="iban-letter">0</span><span class="iban-letter">0</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">0</span><span class="iban-letter">2</span><span class="iban-letter">0</span><span class="iban-letter">0</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">0</span><span class="iban-letter">7</span><span class="iban-letter">5</span><span class="iban-letter">0</span><span class="text-grey-300">&ensp;</span><span class="iban-letter">5</span><span class="iban-letter">9</span><span class="iban-letter">0</span>
+            </button>
+            <p class="text-[7px] text-grey-400 mt-1 no-print group-hover:text-black transition-colors">Cliquer pour copier dans le presse-papiers</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ROW 9 : LEGAL ===== -->
+      <div class="mt-3 space-y-1 animate-el" data-delay="700">
+        <p class="text-[8px] text-grey-400 leading-relaxed">TVA non applicable, article 293 B du Code G&eacute;n&eacute;ral des Imp&ocirc;ts. Conditions de paiement : virement bancaire &agrave; r&eacute;ception de la facture. P&eacute;nalit&eacute; de retard : 3&times; le taux d'int&eacute;r&ecirc;t l&eacute;gal. Indemnit&eacute; forfaitaire de recouvrement : 40 &euro; (art. L.441-10 C. com.).</p>
+        <p class="text-[8px] text-grey-400 leading-relaxed">Cette facture correspond &agrave; un acompte de 30 % du montant total (2 800,00 &euro; HT). Le solde de 1 960,00 &euro; sera factur&eacute; &agrave; la livraison et mise en production.</p>
+      </div>
+
+      <!-- ===== ROW 10 : FOOTER ===== -->
+      <div class="absolute bottom-0 left-0 right-0 px-[48px] pb-4">
+        <div class="h-px bg-black mb-2.5 line-reveal" data-delay="750"></div>
+        <div class="flex justify-between items-end">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-black flex items-center justify-center">
+              <span class="text-white font-grotesk text-[7px] font-bold leading-none">V</span>
+            </div>
+            <p class="text-[7.5px] text-grey-500">Baptiste Fort &mdash; VisionIA &middot; SIRET 909 392 474 00021 &middot; 1 Rue du Roi Dagobert, 94130 Nogent-sur-Marne</p>
+          </div>
+          <p class="text-[7px] text-grey-400 font-mono secret-cursor" id="footer-secret">1 / 1</p>
+        </div>
+      </div>
+
+      <!-- ===== STAMP: visible on print too ===== -->
+      <div class="absolute top-[260px] right-[60px] stamp-el pointer-events-none select-none" data-delay="900" id="stamp">
+        <div class="border-2 border-grey-200 rounded px-4 py-1.5 -rotate-12 opacity-[0.12]">
+          <p class="font-grotesk text-[11px] font-extrabold uppercase tracking-[0.3em] text-black">Acompte</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCREEN HINT -->
+  <p class="text-center text-[10px] text-grey-400 mt-4 mb-12 no-print">Clic sur l'IBAN pour copier &middot; Ctrl+P = PDF &middot; Double-clic sur le <span class="font-bold cursor-pointer" id="hint-v">V</span> pour la surprise</p>
+
+  <script>
+    // ===== INTERSECTION OBSERVER =====
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const d = parseInt(e.target.dataset.delay || 0);
+          setTimeout(() => e.target.classList.add('visible'), d);
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
+    document.querySelectorAll('.animate-el, .line-reveal, .amount-reveal, .stamp-el').forEach(el => obs.observe(el));
+
+    // ===== ACTION BAR =====
+    setTimeout(() => {
+      const bar = document.getElementById('action-bar');
+      bar.style.opacity = '1';
+      bar.style.transform = 'translateX(-50%) translateY(0)';
+    }, 800);
+
+    // ===== PROGRESS =====
+    setTimeout(() => {
+      document.getElementById('progress').style.width = '30%';
+      let c = 0;
+      const iv = setInterval(() => {
+        c += 1;
+        if (c > 30) { clearInterval(iv); c = 30; }
+        document.getElementById('pct-label').textContent = c + ' %';
+      }, 50);
+    }, 1600);
+
+    // ===== COPY IBAN =====
+    function copyIBAN() {
+      navigator.clipboard.writeText('FR76 1027 8060 2000 0200 0750 590').then(() => {
+        const t = document.getElementById('toast');
+        t.classList.add('show');
+        // Flash effect
+        const btn = document.getElementById('iban-btn');
+        btn.style.background = '#000';
+        btn.style.color = '#fff';
+        btn.style.padding = '2px 8px';
+        setTimeout(() => {
+          t.classList.remove('show');
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.padding = '';
+        }, 2000);
+      });
+    }
+
+    // ===== RIPPLE ON LINE ITEMS =====
+    function ripple(e, el) {
+      const r = document.createElement('div');
+      r.classList.add('ripple');
+      const rect = el.getBoundingClientRect();
+      r.style.left = (e.clientX - rect.left - 8) + 'px';
+      r.style.top = (e.clientY - rect.top - 8) + 'px';
+      el.style.position = 'relative';
+      el.style.overflow = 'hidden';
+      el.appendChild(r);
+      setTimeout(() => r.remove(), 700);
+    }
+
+    // ===== MAGNETIC BUTTONS =====
+    document.querySelectorAll('.magnetic').forEach(b => {
+      b.addEventListener('mousemove', function(e) {
+        const r = this.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width/2) * 0.12;
+        const y = (e.clientY - r.top - r.height/2) * 0.12;
+        this.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      b.addEventListener('mouseleave', function() { this.style.transform = ''; });
+    });
+
+    // ===== 3D TILT =====
+    const page = document.querySelector('.invoice-page');
+    page.addEventListener('mousemove', function(e) {
+      const r = this.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      this.style.transform = `perspective(1400px) rotateY(${x * 0.6}deg) rotateX(${-y * 0.6}deg)`;
+      this.style.transition = 'transform 0.1s ease-out';
+    });
+    page.addEventListener('mouseleave', function() {
+      this.style.transform = '';
+      this.style.transition = 'transform 0.6s cubic-bezier(0.22,1,0.36,1)';
+    });
+
+    // ===== EASTER EGG 1: CONFETTI ON LOGO DOUBLE-CLICK =====
+    document.getElementById('logo-egg').addEventListener('dblclick', boom);
+    document.getElementById('hint-v').addEventListener('dblclick', boom);
+
+    function boom() {
+      const c = document.getElementById('confetti');
+      for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        p.classList.add('confetti-bit');
+        p.style.left = Math.random() * 100 + '%';
+        p.style.width = (Math.random() * 6 + 3) + 'px';
+        p.style.height = p.style.width;
+        p.style.background = '#000';
+        p.style.opacity = Math.random() * 0.6 + 0.2;
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '1px';
+        p.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        p.style.animationDelay = (Math.random() * 0.4) + 's';
+        c.appendChild(p);
+        setTimeout(() => p.remove(), 4000);
+      }
+      // Glitch the amount
+      const am = document.getElementById('amount');
+      am.style.animation = 'glitch 0.3s ease 3';
+      setTimeout(() => am.style.animation = '', 1000);
+    }
+
+    // ===== EASTER EGG 2: KONAMI =====
+    const K = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let ki = 0;
+    document.addEventListener('keydown', e => {
+      if (e.key === K[ki]) { ki++; if (ki === K.length) { ki = 0; konami(); } } else { ki = 0; }
+    });
+    function konami() {
+      boom();
+      const f = document.getElementById('footer-secret');
+      f.textContent = '∞ / ∞';
+      f.style.fontWeight = '700';
+      setTimeout(() => { f.textContent = '1 / 1'; f.style.fontWeight = ''; }, 4000);
+    }
+
+    // ===== EASTER EGG 3: TOTAL HOVER CURSOR TRAIL =====
+    const tb = document.getElementById('total-block');
+    let trailing = false;
+    tb.addEventListener('mouseenter', () => trailing = true);
+    tb.addEventListener('mouseleave', () => trailing = false);
+    document.addEventListener('mousemove', e => {
+      if (!trailing) return;
+      const d = document.createElement('div');
+      d.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:4px;height:4px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transition:all 0.5s ease;opacity:0.6;`;
+      document.body.appendChild(d);
+      requestAnimationFrame(() => { d.style.opacity = '0'; d.style.transform = 'scale(4)'; });
+      setTimeout(() => d.remove(), 500);
+    });
+
+    // ===== EASTER EGG 4: TRIPLE CLICK AMOUNT =====
+    let ac = 0, at;
+    document.getElementById('amount').addEventListener('click', function() {
+      ac++;
+      clearTimeout(at);
+      at = setTimeout(() => {
+        if (ac >= 3) {
+          const el = this;
+          const original = el.innerHTML;
+          const msgs = ['◆', '840', '◆◆', '840,00 €'];
+          let i = 0;
+          const iv = setInterval(() => {
+            el.textContent = msgs[i % msgs.length];
+            i++;
+            if (i > 6) { clearInterval(iv); el.innerHTML = original; }
+          }, 150);
+        }
+        ac = 0;
+      }, 350);
+    });
+
+    // ===== SMOOTH LOAD =====
+    document.body.style.opacity = '0';
+    document.body.style.transition = 'opacity 0.5s';
+    window.addEventListener('load', () => { document.body.style.opacity = '1'; });
+  </script>
+</body>
+</html>

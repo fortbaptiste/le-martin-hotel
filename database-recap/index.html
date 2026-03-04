@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de Donnees - Le Martin Boutique Hotel x VisionIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        martin: {
+                            yellow: '#FFE156',
+                            teal: '#4ECDC4',
+                            pink: '#FF6B9D',
+                            purple: '#A855F7',
+                        },
+                        neo: {
+                            yellow: '#FFE156',
+                            teal: '#4ECDC4',
+                            pink: '#FF6B9D',
+                            purple: '#A855F7',
+                            orange: '#FF8A4C',
+                            lime: '#84CC16',
+                            blue: '#3B82F6',
+                        },
+                        dark: '#1a1a2e',
+                    },
+                    fontFamily: {
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Space Grotesk', sans-serif; }
+
+        .neo-border { border: 3px solid black; }
+        .neo-border-2 { border: 2px solid black; }
+
+        .neo-card {
+            border: 3px solid black;
+            box-shadow: 6px 6px 0px black;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        .neo-card:hover {
+            box-shadow: 10px 10px 0px black;
+            transform: translate(-2px, -2px);
+        }
+
+        .neo-btn {
+            border: 3px solid black;
+            box-shadow: 4px 4px 0px black;
+            transition: all 0.15s ease;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .neo-btn:hover {
+            box-shadow: 2px 2px 0px black;
+            transform: translate(2px, 2px);
+        }
+        .neo-btn:active {
+            box-shadow: 0px 0px 0px black;
+            transform: translate(4px, 4px);
+        }
+
+        /* Scroll animations */
+        .slide-in {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .slide-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .slide-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Float animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .float { animation: float 3s ease-in-out infinite; }
+        .float-delay-1 { animation: float 3s ease-in-out 0.5s infinite; }
+        .float-delay-2 { animation: float 3s ease-in-out 1s infinite; }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #FFE156, #4ECDC4, #FF6B9D, #A855F7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Marquee */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .marquee { animation: marquee 20s linear infinite; }
+        .marquee:hover { animation-play-state: paused; }
+
+        /* Pulse glow */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 6px 6px 0px black, 0 0 0px rgba(78, 205, 196, 0); }
+            50% { box-shadow: 6px 6px 0px black, 0 0 20px rgba(78, 205, 196, 0.4); }
+        }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+        /* Typewriter effect */
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: black; }
+        }
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid black;
+            animation: typewriter 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-left: 3px solid black; }
+        ::-webkit-scrollbar-thumb { background: #FFE156; border: 2px solid black; border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: #4ECDC4; }
+
+        /* Counter animation */
+        .counter { display: inline-block; }
+
+        /* Grid background */
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Table styles */
+        .neo-table { border-collapse: separate; border-spacing: 0; }
+        .neo-table th {
+            background: #1a1a2e;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            padding: 12px 16px;
+            text-align: left;
+            border: 2px solid black;
+        }
+        .neo-table td {
+            padding: 10px 16px;
+            border: 2px solid black;
+            background: white;
+        }
+        .neo-table tr:nth-child(even) td { background: #f9f9f9; }
+        .neo-table tr:hover td { background: #FFE156; transition: background 0.2s; }
+
+        /* Pillar connector lines */
+        .pillar-connector {
+            position: relative;
+        }
+        .pillar-connector::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            width: 3px;
+            height: 20px;
+            background: black;
+        }
+
+        /* Stagger children animation delays */
+        .stagger-children > *:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-children > *:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-children > *:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-children > *:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-children > *:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-children > *:nth-child(6) { transition-delay: 0.6s; }
+
+        /* Badge wiggle */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+        .wiggle:hover { animation: wiggle 0.3s ease-in-out infinite; }
+
+        /* Section numbering */
+        .section-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            opacity: 0.07;
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 overflow-x-hidden">
+
+    <!-- ============================================ -->
+    <!-- SECTION 1: HERO                              -->
+    <!-- ============================================ -->
+    <section id="hero" class="min-h-screen flex items-center justify-center relative grid-bg overflow-hidden">
+        <!-- Decorative floating shapes -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-martin-yellow neo-border rotate-12 float opacity-60"></div>
+        <div class="absolute top-40 right-20 w-16 h-16 bg-martin-teal neo-border -rotate-6 float-delay-1 opacity-60"></div>
+        <div class="absolute bottom-32 left-1/4 w-24 h-24 bg-martin-pink neo-border rotate-45 float-delay-2 opacity-40"></div>
+        <div class="absolute bottom-20 right-1/3 w-14 h-14 bg-martin-purple neo-border rotate-12 float opacity-50"></div>
+        <div class="absolute top-1/3 left-1/3 w-10 h-10 bg-neo-orange neo-border -rotate-12 float-delay-1 opacity-30"></div>
+
+        <div class="text-center px-6 max-w-5xl mx-auto relative z-10">
+            <!-- Top badge -->
+            <div class="inline-block mb-8">
+                <span class="neo-btn bg-dark text-white px-6 py-2 text-sm tracking-widest">DOCUMENTATION TECHNIQUE</span>
+            </div>
+
+            <!-- Main title -->
+            <h1 class="font-heading text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+                <span class="block">Base de Donn&eacute;es</span>
+                <span class="gradient-text block mt-2">Le Martin Boutique H&ocirc;tel</span>
+                <span class="block text-3xl md:text-4xl lg:text-5xl mt-4 font-bold">x VisionIA</span>
+            </h1>
+
+            <!-- Subtitle with typewriter -->
+            <div class="max-w-2xl mx-auto mb-10">
+                <p class="text-xl md:text-2xl font-heading font-medium text-gray-700 typewriter inline-block">
+                    21 tables, 14 enums, 1 IA qui g&egrave;re tes mails
+                </p>
+            </div>
+
+            <!-- Animated tech badges -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <span class="neo-card px-6 py-3 bg-martin-yellow font-heading font-bold text-lg wiggle cursor-default float">
+                    &#9889; Supabase
+                </span>
+                <span class="neo-card px-6 py-3 bg-martin-teal font-heading font-bold text-lg wiggle cursor-default float-delay-1">
+                    &#128024; PostgreSQL
+                </span>
+                <span class="neo-card px-6 py-3 bg-martin-pink font-heading font-bold text-lg wiggle cursor-default float-delay-2">
+                    &#128274; Row Level Security
+                </span>
+            </div>
+
+            <!-- Scroll indicator -->
+            <div class="mt-8 animate-bounce">
+                <a href="#stats" class="inline-block">
+                    <div class="neo-border rounded-full w-12 h-12 flex items-center justify-center bg-white hover:bg-martin-yellow transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee separator -->
+    <div class="bg-dark py-3 neo-border-2 border-l-0 border-r-0 overflow-hidden">
+        <div class="marquee whitespace-nowrap">
+            <span class="text-white font-heading font-bold text-lg mx-8">&#128197; SUPABASE</span>
+            <span class="text-martin-yellow font-heading font-bold text-lg mx-8">&#9679; POSTGRESQL</span>
+            <span class="text-martin-teal font-heading font-bold text-lg mx-8">&#128197; 21 TABLES</span>
+            <span class="text-martin-pink font-heading font-bold text-lg mx-8">&#9679; 14 ENUMS</span>
+            <span class="text-martin-purple font-heading font-bold text-lg mx-8">&#128197; ROW LEVEL SECURITY</span>
+            <span class="text-white font-heading font-bold text-lg mx-8">&#9679; REAL-TIME</span>
+            <span class="text-martin-yellow font-heading font-bold text-lg mx-8">&#128197; SUPABASE</span>
+            <span class="text-martin-teal font-heading font-bold text-lg mx-8">&#9679; POSTGRESQL</span>
+            <span class="text-martin-pink font-heading font-bold text-lg mx-8">&#128197; 21 TABLES</span>
+            <span class="text-martin-purple font-heading font-bold text-lg mx-8">&#9679; 14 ENUMS</span>
+            <span class="text-white font-heading font-bold text-lg mx-8">&#128197; ROW LEVEL SECURITY</span>
+            <span class="text-martin-yellow font-heading font-bold text-lg mx-8">&#9679; REAL-TIME</span>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 2: DASHBOARD STATS                   -->
+    <!-- ============================================ -->
+    <section id="stats" class="py-20 px-6 bg-gray-50 grid-bg">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in">
+                <span class="neo-btn bg-martin-purple text-white px-4 py-1 text-sm mb-4 inline-block">VUE D'ENSEMBLE</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Ta base en chiffres</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-2xl mx-auto">Tout ce que l'IA sait sur ton h&ocirc;tel, tes clients et ton &icirc;le, en un coup d'oeil.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 stagger-children">
+                <!-- Stat 1 -->
+                <div class="neo-card p-6 text-center bg-martin-yellow slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="21">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Tables</div>
+                    <div class="text-sm text-gray-700 mt-1">dans la base</div>
+                </div>
+                <!-- Stat 2 -->
+                <div class="neo-card p-6 text-center bg-martin-teal slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="14">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Enums</div>
+                    <div class="text-sm text-gray-700 mt-1">types d&eacute;finis</div>
+                </div>
+                <!-- Stat 3 -->
+                <div class="neo-card p-6 text-center bg-martin-pink slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black">~500+</div>
+                    <div class="font-heading font-bold text-lg mt-2">Rows</div>
+                    <div class="text-sm text-gray-700 mt-1">lignes de donn&eacute;es</div>
+                </div>
+                <!-- Stat 4 -->
+                <div class="neo-card p-6 text-center bg-martin-purple text-white slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="6">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Chambres</div>
+                    <div class="text-sm text-gray-200 mt-1">dans l'h&ocirc;tel</div>
+                </div>
+                <!-- Stat 5 -->
+                <div class="neo-card p-6 text-center bg-neo-orange slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="211">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Avis clients</div>
+                    <div class="text-sm text-gray-700 mt-1">analys&eacute;s</div>
+                </div>
+                <!-- Stat 6 -->
+                <div class="neo-card p-6 text-center bg-neo-lime slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="25">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">R&egrave;gles IA</div>
+                    <div class="text-sm text-gray-700 mt-1">comportement</div>
+                </div>
+                <!-- Stat 7 -->
+                <div class="neo-card p-6 text-center bg-neo-blue text-white slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="12">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Templates</div>
+                    <div class="text-sm text-gray-200 mt-1">email pr&ecirc;ts</div>
+                </div>
+                <!-- Stat 8 -->
+                <div class="neo-card p-6 text-center bg-martin-yellow slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="7">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Partenaires</div>
+                    <div class="text-sm text-gray-700 mt-1">de confiance</div>
+                </div>
+                <!-- Stat 9 -->
+                <div class="neo-card p-6 text-center bg-martin-teal slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="37">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Horaires</div>
+                    <div class="text-sm text-gray-700 mt-1">transport</div>
+                </div>
+                <!-- Stat 10 -->
+                <div class="neo-card p-6 text-center bg-martin-pink slide-in">
+                    <div class="font-heading text-5xl md:text-6xl font-black counter" data-target="9">0</div>
+                    <div class="font-heading font-bold text-lg mt-2">Exemples</div>
+                    <div class="text-sm text-gray-700 mt-1">conversations</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 3: ARCHITECTURE OVERVIEW             -->
+    <!-- ============================================ -->
+    <section id="architecture" class="py-20 px-6 bg-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">03</span>
+                <span class="neo-btn bg-martin-teal px-4 py-1 text-sm mb-4 inline-block">ARCHITECTURE</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Comment tout est connect&eacute;</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Ta base de donn&eacute;es est organis&eacute;e en 4 grands piliers. Chaque pilier regroupe des tables qui travaillent ensemble. Voici la vue d'ensemble.</p>
+            </div>
+
+            <!-- 4 Pillars Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <!-- Pillar 1: Donnees Hotel -->
+                <div class="neo-card p-6 bg-martin-yellow slide-in">
+                    <div class="text-4xl mb-3">&#127960;</div>
+                    <h3 class="font-heading text-xl font-black mb-3">Donn&eacute;es H&ocirc;tel</h3>
+                    <p class="text-sm text-gray-700 mb-4">Tout ce qui d&eacute;crit ton h&ocirc;tel et ton &icirc;le</p>
+                    <div class="space-y-2">
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128209; rooms</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#127860; restaurants</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#127958; beaches</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#127946; activities</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128652; transport_schedules</div>
+                    </div>
+                </div>
+
+                <!-- Pillar 2: Clients & Reservations -->
+                <div class="neo-card p-6 bg-martin-teal slide-in">
+                    <div class="text-4xl mb-3">&#128101;</div>
+                    <h3 class="font-heading text-xl font-black mb-3">Clients &amp; R&eacute;servations</h3>
+                    <p class="text-sm text-gray-700 mb-4">Les gens qui viennent chez toi</p>
+                    <div class="space-y-2">
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128100; clients</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128197; reservations</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128172; conversations</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128233; messages</div>
+                    </div>
+                </div>
+
+                <!-- Pillar 3: Systeme Email IA -->
+                <div class="neo-card p-6 bg-martin-pink slide-in">
+                    <div class="text-4xl mb-3">&#129302;</div>
+                    <h3 class="font-heading text-xl font-black mb-3">Syst&egrave;me Email IA</h3>
+                    <p class="text-sm text-gray-700 mb-4">Le cerveau et les outils de l'IA</p>
+                    <div class="space-y-2">
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128231; email_templates</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128218; email_examples</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128220; ai_rules</div>
+                        <div class="bg-white neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#129309; partners</div>
+                    </div>
+                </div>
+
+                <!-- Pillar 4: Avis & Suivi -->
+                <div class="neo-card p-6 bg-martin-purple text-white slide-in">
+                    <div class="text-4xl mb-3">&#11088;</div>
+                    <h3 class="font-heading text-xl font-black mb-3">Avis &amp; Suivi</h3>
+                    <p class="text-sm text-gray-200 mb-4">Surveillance qualit&eacute; continue</p>
+                    <div class="space-y-2">
+                        <div class="bg-white text-black neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#11088; reviews</div>
+                        <div class="bg-white text-black neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128202; review_stats</div>
+                        <div class="bg-white text-black neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128203; daily_summaries</div>
+                        <div class="bg-white text-black neo-border-2 px-3 py-2 text-sm font-mono font-bold">&#128680; escalations</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection arrows diagram -->
+            <div class="neo-card p-8 bg-gray-50 slide-in">
+                <h4 class="font-heading text-xl font-bold mb-6 text-center">&#128279; Comment les piliers communiquent</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="neo-border-2 p-4 bg-white rounded">
+                        <div class="font-heading font-bold text-martin-teal">Client envoie un email</div>
+                        <div class="text-2xl my-2">&#8595;</div>
+                        <div class="font-heading font-bold text-martin-pink">IA lit les r&egrave;gles + templates</div>
+                        <div class="text-2xl my-2">&#8595;</div>
+                        <div class="font-heading font-bold text-martin-yellow">Consulte chambres + restos + plages</div>
+                        <div class="text-2xl my-2">&#8595;</div>
+                        <div class="font-heading font-bold text-martin-purple">G&eacute;n&egrave;re une r&eacute;ponse personnalis&eacute;e</div>
+                    </div>
+                    <div class="neo-border-2 p-4 bg-white rounded">
+                        <div class="font-heading font-bold mb-3">&#128260; Liens entre tables</div>
+                        <div class="text-left text-sm space-y-2">
+                            <div><span class="font-mono bg-martin-teal px-2 py-1 neo-border-2 text-xs">clients</span> &#8594; <span class="font-mono bg-martin-yellow px-2 py-1 neo-border-2 text-xs">reservations</span></div>
+                            <div><span class="font-mono bg-martin-teal px-2 py-1 neo-border-2 text-xs">clients</span> &#8594; <span class="font-mono bg-martin-pink px-2 py-1 neo-border-2 text-xs">conversations</span></div>
+                            <div><span class="font-mono bg-martin-pink px-2 py-1 neo-border-2 text-xs">conversations</span> &#8594; <span class="font-mono bg-martin-pink px-2 py-1 neo-border-2 text-xs">messages</span></div>
+                            <div><span class="font-mono bg-martin-yellow px-2 py-1 neo-border-2 text-xs">reservations</span> &#8594; <span class="font-mono bg-martin-yellow px-2 py-1 neo-border-2 text-xs">rooms</span></div>
+                            <div><span class="font-mono bg-martin-purple px-2 py-1 neo-border-2 text-xs">reviews</span> &#8594; <span class="font-mono bg-martin-purple px-2 py-1 neo-border-2 text-xs">review_stats</span></div>
+                        </div>
+                    </div>
+                    <div class="neo-border-2 p-4 bg-white rounded">
+                        <div class="font-heading font-bold mb-3">&#128272; S&eacute;curit&eacute; (RLS)</div>
+                        <div class="text-left text-sm space-y-2">
+                            <p>Chaque table a des <strong>Row Level Security</strong> policies.</p>
+                            <p>Ca veut dire que m&ecirc;me si quelqu'un acc&egrave;de &agrave; la base, il ne voit <strong>que ce qu'il a le droit de voir</strong>.</p>
+                            <p class="text-martin-purple font-bold">L'IA a un acc&egrave;s en lecture seule sur les donn&eacute;es h&ocirc;tel, et lecture/&eacute;criture sur les conversations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 4: STACK TECHNIQUE                   -->
+    <!-- ============================================ -->
+    <section id="stack" class="py-20 px-6 bg-dark text-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number text-white opacity-5">04</span>
+                <span class="neo-btn bg-martin-yellow text-black px-4 py-1 text-sm mb-4 inline-block">STACK TECHNIQUE</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 5 briques du syst&egrave;me</h2>
+                <p class="text-xl text-gray-400 mt-4 max-w-3xl mx-auto">Ton syst&egrave;me email IA, c'est 5 outils qui bossent ensemble. Chacun a son r&ocirc;le bien pr&eacute;cis.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 stagger-children">
+                <!-- Card 1: Outlook -->
+                <div class="neo-card p-6 bg-white text-black slide-in hover:bg-neo-blue hover:text-white transition-colors group">
+                    <div class="text-5xl mb-4">&#128231;</div>
+                    <h3 class="font-heading text-lg font-black mb-2">Microsoft Outlook</h3>
+                    <div class="text-xs font-mono bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded mb-3 inline-block">Graph API</div>
+                    <p class="text-sm">Lecture et envoi des emails. C'est la porte d'entr&eacute;e : l'IA se connecte &agrave; ta bo&icirc;te Outlook pour lire les messages entrants et envoyer les r&eacute;ponses.</p>
+                </div>
+
+                <!-- Card 2: Claude -->
+                <div class="neo-card p-6 bg-white text-black slide-in hover:bg-martin-purple hover:text-white transition-colors group">
+                    <div class="text-5xl mb-4">&#129504;</div>
+                    <h3 class="font-heading text-lg font-black mb-2">Claude Sonnet 4</h3>
+                    <div class="text-xs font-mono bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded mb-3 inline-block">Anthropic</div>
+                    <p class="text-sm">Le cerveau de l'IA. C'est lui qui comprend les emails, r&eacute;fl&eacute;chit &agrave; la meilleure r&eacute;ponse et &eacute;crit des emails naturels et personnalis&eacute;s.</p>
+                </div>
+
+                <!-- Card 3: Thais PMS -->
+                <div class="neo-card p-6 bg-white text-black slide-in hover:bg-martin-teal transition-colors group">
+                    <div class="text-5xl mb-4">&#127968;</div>
+                    <h3 class="font-heading text-lg font-black mb-2">Thais PMS</h3>
+                    <div class="text-xs font-mono bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded mb-3 inline-block">Channel Manager</div>
+                    <p class="text-sm">Les disponibilit&eacute;s, les tarifs et les r&eacute;servations en temps r&eacute;el. L'IA v&eacute;rifie directement dans Thais avant de r&eacute;pondre sur les prix.</p>
+                </div>
+
+                <!-- Card 4: Supabase -->
+                <div class="neo-card p-6 bg-white text-black slide-in hover:bg-martin-yellow transition-colors group">
+                    <div class="text-5xl mb-4">&#128024;</div>
+                    <h3 class="font-heading text-lg font-black mb-2">Supabase</h3>
+                    <div class="text-xs font-mono bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded mb-3 inline-block">PostgreSQL</div>
+                    <p class="text-sm">La m&eacute;moire de l'IA. C'est ici que tout est stock&eacute; : les infos h&ocirc;tel, les r&egrave;gles, les templates, l'historique des conversations, les avis clients.</p>
+                </div>
+
+                <!-- Card 5: Python -->
+                <div class="neo-card p-6 bg-white text-black slide-in hover:bg-martin-pink transition-colors group">
+                    <div class="text-5xl mb-4">&#128013;</div>
+                    <h3 class="font-heading text-lg font-black mb-2">Python</h3>
+                    <div class="text-xs font-mono bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded mb-3 inline-block">Chef d'orchestre</div>
+                    <p class="text-sm">Le chef d'orchestre. C'est le programme qui connecte tout : il lit Outlook, appelle Claude, v&eacute;rifie Thais, &eacute;crit dans Supabase et envoie la r&eacute;ponse.</p>
+                </div>
+            </div>
+
+            <!-- Flow diagram -->
+            <div class="mt-12 neo-card p-6 bg-dark text-white border-gray-600 slide-in" style="border-color: #555;">
+                <h4 class="font-heading text-lg font-bold mb-4 text-center text-martin-yellow">&#128260; Le parcours d'un email</h4>
+                <div class="flex flex-wrap items-center justify-center gap-3 text-sm font-heading font-bold">
+                    <span class="bg-neo-blue px-4 py-2 neo-border-2 text-white">Email arrive dans Outlook</span>
+                    <span class="text-martin-yellow text-xl">&#8594;</span>
+                    <span class="bg-martin-yellow text-black px-4 py-2 neo-border-2">Python le d&eacute;tecte</span>
+                    <span class="text-martin-yellow text-xl">&#8594;</span>
+                    <span class="bg-martin-teal text-black px-4 py-2 neo-border-2">Supabase: contexte client</span>
+                    <span class="text-martin-yellow text-xl">&#8594;</span>
+                    <span class="bg-martin-purple text-white px-4 py-2 neo-border-2">Claude r&eacute;dige</span>
+                    <span class="text-martin-yellow text-xl">&#8594;</span>
+                    <span class="bg-martin-pink text-black px-4 py-2 neo-border-2">Brouillon dans Outlook</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 5: TABLE clients                     -->
+    <!-- ============================================ -->
+    <section id="clients" class="py-20 px-6 bg-gray-50 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">05</span>
+                <span class="neo-btn bg-martin-teal px-4 py-1 text-sm mb-4 inline-block">TABLE: clients</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les fiches clients</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Chaque personne qui envoie un email a sa fiche. L'IA s'en souvient et personnalise chaque r&eacute;ponse. C'est comme un carnet de notes intelligent.</p>
+            </div>
+
+            <!-- Columns table -->
+            <div class="overflow-x-auto mb-12 slide-in">
+                <table class="neo-table w-full">
+                    <thead>
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Type</th>
+                            <th>C'est quoi ?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="font-mono font-bold">email</td><td>text</td><td>L'adresse email du client (identifiant unique)</td></tr>
+                        <tr><td class="font-mono font-bold">first_name</td><td>text</td><td>Pr&eacute;nom du client</td></tr>
+                        <tr><td class="font-mono font-bold">last_name</td><td>text</td><td>Nom de famille</td></tr>
+                        <tr><td class="font-mono font-bold">phone</td><td>text</td><td>Num&eacute;ro de t&eacute;l&eacute;phone (si fourni)</td></tr>
+                        <tr><td class="font-mono font-bold">language</td><td>text</td><td>Langue pr&eacute;f&eacute;r&eacute;e (fr, en, es, etc.)</td></tr>
+                        <tr><td class="font-mono font-bold">nationality</td><td>text</td><td>Nationalit&eacute; du client</td></tr>
+                        <tr><td class="font-mono font-bold">vip_score</td><td>integer (0-10)</td><td>Score VIP : 0 = nouveau, 10 = client en or. L'IA adapte son niveau de service.</td></tr>
+                        <tr><td class="font-mono font-bold">total_stays</td><td>integer</td><td>Nombre total de s&eacute;jours pass&eacute;s</td></tr>
+                        <tr><td class="font-mono font-bold">preferences</td><td>JSONB</td><td>Pr&eacute;f&eacute;rences libres : chambre pr&eacute;f&eacute;r&eacute;e, allergies, habitudes...</td></tr>
+                        <tr><td class="font-mono font-bold">notes</td><td>text</td><td>Notes libres pour toi ou Marion</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Example card -->
+            <div class="neo-card p-8 bg-martin-teal slide-in">
+                <h4 class="font-heading text-xl font-bold mb-4">&#128100; Exemple concret : Marie Dupont</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="bg-white neo-border-2 p-4 font-mono text-sm space-y-1">
+                            <div><span class="text-gray-500">email:</span> marie@email.com</div>
+                            <div><span class="text-gray-500">first_name:</span> Marie</div>
+                            <div><span class="text-gray-500">last_name:</span> Dupont</div>
+                            <div><span class="text-gray-500">phone:</span> +33 6 12 34 56 78</div>
+                            <div><span class="text-gray-500">language:</span> fr</div>
+                            <div><span class="text-gray-500">nationality:</span> FR</div>
+                            <div><span class="text-gray-500">vip_score:</span> <span class="bg-martin-yellow px-2 font-bold">8</span></div>
+                            <div><span class="text-gray-500">total_stays:</span> 3</div>
+                            <div><span class="text-gray-500">preferences:</span> {"room": "vue mer", "allergies": "gluten"}</div>
+                            <div><span class="text-gray-500">notes:</span> Adore le cocktail rhum arrange</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="bg-white neo-border-2 p-6">
+                            <h5 class="font-heading font-bold mb-3">&#129504; Ce que l'IA fait avec ca :</h5>
+                            <ul class="space-y-2 text-sm">
+                                <li>&#10003; R&eacute;pond en fran&ccedil;ais automatiquement</li>
+                                <li>&#10003; Propose des chambres vue mer en priorit&eacute;</li>
+                                <li>&#10003; Mentionne les restaurants sans gluten</li>
+                                <li>&#10003; Traitement VIP (score 8) = plus de d&eacute;tails, plus d'attention</li>
+                                <li>&#10003; Sait que c'est sa 3e visite : "Ravie de vous retrouver !"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 6: TABLE rooms                       -->
+    <!-- ============================================ -->
+    <section id="rooms" class="py-20 px-6 bg-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">06</span>
+                <span class="neo-btn bg-martin-yellow px-4 py-1 text-sm mb-4 inline-block">TABLE: rooms</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 6 chambres</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Chaque chambre a sa fiche compl&egrave;te dans la base. L'IA connait les d&eacute;tails par coeur et peut recommander la chambre parfaite selon les besoins du client.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+                <!-- Room 1: Pierre -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #4ECDC4;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Chambre Pierre</h3>
+                        <span class="neo-btn bg-martin-teal text-xs px-3 py-1">PRESTIGE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">30 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Lit</span><span class="font-bold">Queen</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Jardin</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">250&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">380&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room 2: Sable -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #4ECDC4;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Chambre Sable</h3>
+                        <span class="neo-btn bg-martin-teal text-xs px-3 py-1">PRESTIGE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">28 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Lit</span><span class="font-bold">Queen</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Mer</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">280&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">420&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room 3: Suite Corail -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #A855F7;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Suite Corail</h3>
+                        <span class="neo-btn bg-martin-purple text-white text-xs px-3 py-1">DELUXE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">45 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Lit</span><span class="font-bold">King</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Mer panoramique</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes + 1 enfant</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">380&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">550&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room 4: Suite Marius -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #A855F7;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Suite Marius</h3>
+                        <span class="neo-btn bg-martin-purple text-white text-xs px-3 py-1">DELUXE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">50 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Lit</span><span class="font-bold">King</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Mer + terrasse priv&eacute;e</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes + 1 enfant</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">420&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">600&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room 5: Suite Familiale Lagon -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #FF6B9D;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Suite Familiale Lagon</h3>
+                        <span class="neo-btn bg-martin-pink text-xs px-3 py-1">FAMILY SUITE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">55 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Configuration</span><span class="font-bold">2 chambres</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Mer + jardin</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes + 2 enfants</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">500&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">720&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room 6: Suite Familiale Cocotier -->
+                <div class="neo-card p-6 slide-in" style="border-left: 8px solid #FF6B9D;">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-heading text-xl font-black">Suite Familiale Cocotier</h3>
+                        <span class="neo-btn bg-martin-pink text-xs px-3 py-1">FAMILY SUITE</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Surface</span><span class="font-bold">60 m&sup2;</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Configuration</span><span class="font-bold">2 chambres communicantes</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Vue</span><span class="font-bold">Mer + jardin tropical</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Max</span><span class="font-bold">2 adultes + 3 enfants</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-black">
+                        <div class="flex justify-between text-sm">
+                            <div><span class="text-gray-500">Basse saison</span><br><span class="font-heading font-bold text-lg">550&#8364;</span>/nuit</div>
+                            <div class="text-right"><span class="text-gray-500">Haute saison</span><br><span class="font-heading font-bold text-lg">780&#8364;</span>/nuit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room slug explanation -->
+            <div class="mt-8 neo-card p-6 bg-martin-yellow slide-in">
+                <h4 class="font-heading text-lg font-bold mb-3">&#128161; Comment l'IA choisit une chambre ?</h4>
+                <p class="text-sm">Chaque chambre a un <strong>slug</strong> unique (ex: <code class="bg-white px-2 py-1 neo-border-2 text-xs font-mono">suite-corail</code>). Quand un client demande "une chambre vue mer pour 2 personnes", l'IA cherche dans la table <code class="bg-white px-2 py-1 neo-border-2 text-xs font-mono">rooms</code> celles qui matchent. Elle connait les surfaces, les vues, les capacit&eacute;s et les prix. Ensuite elle propose la meilleure option.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 7: TABLE reservations                -->
+    <!-- ============================================ -->
+    <section id="reservations" class="py-20 px-6 bg-gray-50 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">07</span>
+                <span class="neo-btn bg-martin-pink px-4 py-1 text-sm mb-4 inline-block">TABLE: reservations</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les r&eacute;servations</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Chaque r&eacute;servation est enregistr&eacute;e ici. La table est synchronis&eacute;e avec Thais PMS pour que l'IA ait toujours les infos &agrave; jour.</p>
+            </div>
+
+            <!-- Columns table -->
+            <div class="overflow-x-auto mb-12 slide-in">
+                <table class="neo-table w-full">
+                    <thead>
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Type</th>
+                            <th>C'est quoi ?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="font-mono font-bold">client_id</td><td>UUID (FK)</td><td>Lien vers la fiche du client</td></tr>
+                        <tr><td class="font-mono font-bold">thais_reservation_id</td><td>text</td><td>L'identifiant dans Thais PMS (pour la synchro)</td></tr>
+                        <tr><td class="font-mono font-bold">room_slug</td><td>text (FK)</td><td>Quelle chambre (ex: suite-marius)</td></tr>
+                        <tr><td class="font-mono font-bold">checkin_date</td><td>date</td><td>Date d'arriv&eacute;e</td></tr>
+                        <tr><td class="font-mono font-bold">checkout_date</td><td>date</td><td>Date de d&eacute;part</td></tr>
+                        <tr><td class="font-mono font-bold">nights</td><td>integer</td><td>Nombre de nuits (auto-calcul&eacute; depuis checkin/checkout)</td></tr>
+                        <tr><td class="font-mono font-bold">guests_adults</td><td>integer</td><td>Nombre d'adultes</td></tr>
+                        <tr><td class="font-mono font-bold">guests_children</td><td>integer</td><td>Nombre d'enfants</td></tr>
+                        <tr><td class="font-mono font-bold">total_price</td><td>decimal</td><td>Prix total du s&eacute;jour</td></tr>
+                        <tr><td class="font-mono font-bold">currency</td><td>text</td><td>Devise (EUR, USD)</td></tr>
+                        <tr><td class="font-mono font-bold">rate</td><td>enum</td><td>Type de tarif : advance_purchase, flexible, honeymoon</td></tr>
+                        <tr><td class="font-mono font-bold">status</td><td>enum</td><td>pending / confirmed / cancelled / completed / no_show</td></tr>
+                        <tr><td class="font-mono font-bold">special_requests</td><td>text</td><td>Demandes sp&eacute;ciales (lit b&eacute;b&eacute;, champagne, etc.)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sync explanation -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="neo-card p-6 bg-martin-pink slide-in">
+                    <h4 class="font-heading text-lg font-bold mb-3">&#128260; Synchro avec Thais PMS</h4>
+                    <p class="text-sm mb-3">Quand une r&eacute;servation est faite sur Booking, Expedia ou en direct, Thais PMS la re&ccedil;oit. Notre syst&egrave;me r&eacute;cup&egrave;re ensuite les infos et les stocke dans Supabase.</p>
+                    <div class="bg-white neo-border-2 p-3 text-sm">
+                        <div class="font-mono">
+                            <span class="text-gray-500">Thais</span> &#8594; <span class="text-martin-purple font-bold">Python</span> &#8594; <span class="text-martin-teal font-bold">Supabase</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mt-3">Comme &ccedil;a, quand un client envoie un email, l'IA sait d&eacute;j&agrave; : quand il arrive, quelle chambre, combien de nuits, s'il a des demandes sp&eacute;ciales.</p>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <h4 class="font-heading text-lg font-bold mb-3">&#128202; Les statuts d'une r&eacute;servation</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="neo-border-2 bg-yellow-100 px-3 py-1 text-sm font-bold">pending</span>
+                            <span class="text-sm">En attente de confirmation</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="neo-border-2 bg-green-100 px-3 py-1 text-sm font-bold">confirmed</span>
+                            <span class="text-sm">C'est bon, c'est valid&eacute; !</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="neo-border-2 bg-red-100 px-3 py-1 text-sm font-bold">cancelled</span>
+                            <span class="text-sm">Annul&eacute;e par le client</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="neo-border-2 bg-blue-100 px-3 py-1 text-sm font-bold">completed</span>
+                            <span class="text-sm">S&eacute;jour termin&eacute;</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="neo-border-2 bg-gray-100 px-3 py-1 text-sm font-bold">no_show</span>
+                            <span class="text-sm">Client pas venu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 8: TABLE conversations & messages    -->
+    <!-- ============================================ -->
+    <section id="conversations" class="py-20 px-6 bg-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">08</span>
+                <span class="neo-btn bg-martin-purple text-white px-4 py-1 text-sm mb-4 inline-block">TABLE: conversations + messages</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">L'historique des emails</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Deux tables qui travaillent ensemble : <strong>conversations</strong> regroupe les fils de discussion, et <strong>messages</strong> contient chaque email individuel.</p>
+            </div>
+
+            <!-- Table: conversations -->
+            <div class="mb-12">
+                <h3 class="font-heading text-2xl font-bold mb-6 slide-in">&#128172; Table: <code class="bg-martin-purple text-white px-3 py-1">conversations</code></h3>
+                <div class="overflow-x-auto mb-8 slide-in">
+                    <table class="neo-table w-full">
+                        <thead>
+                            <tr>
+                                <th>Colonne</th>
+                                <th>Type</th>
+                                <th>C'est quoi ?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="font-mono font-bold">client_id</td><td>UUID (FK)</td><td>Lien vers le client</td></tr>
+                            <tr><td class="font-mono font-bold">outlook_thread_id</td><td>text</td><td>L'identifiant du fil de discussion dans Outlook</td></tr>
+                            <tr><td class="font-mono font-bold">subject</td><td>text</td><td>L'objet de l'email</td></tr>
+                            <tr><td class="font-mono font-bold">status</td><td>enum</td><td><strong>active</strong> (en cours) / <strong>closed</strong> (termin&eacute;) / <strong>escalated</strong> (pass&eacute; &agrave; un humain)</td></tr>
+                            <tr><td class="font-mono font-bold">category</td><td>enum</td><td>14 cat&eacute;gories possibles : reservation_inquiry, pre_arrival, restaurant, car_rental, activity, transport, special_occasion, complaint, post_stay, modification, cancellation, general_info, partner_request, urgent</td></tr>
+                            <tr><td class="font-mono font-bold">assignee</td><td>text</td><td>Qui g&egrave;re : <strong>bot</strong> (l'IA), <strong>Marion</strong>, ou <strong>Emmanuel</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table: messages -->
+            <div class="mb-12">
+                <h3 class="font-heading text-2xl font-bold mb-6 slide-in">&#128233; Table: <code class="bg-martin-pink px-3 py-1">messages</code></h3>
+                <div class="overflow-x-auto mb-8 slide-in">
+                    <table class="neo-table w-full">
+                        <thead>
+                            <tr>
+                                <th>Colonne</th>
+                                <th>Type</th>
+                                <th>C'est quoi ?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="font-mono font-bold">conversation_id</td><td>UUID (FK)</td><td>Lien vers la conversation</td></tr>
+                            <tr><td class="font-mono font-bold">direction</td><td>enum</td><td><strong>inbound</strong> (client &#8594; nous) ou <strong>outbound</strong> (nous &#8594; client)</td></tr>
+                            <tr><td class="font-mono font-bold">body_text</td><td>text</td><td>Le contenu de l'email</td></tr>
+                            <tr><td class="font-mono font-bold">ai_draft</td><td>text</td><td>Le brouillon g&eacute;n&eacute;r&eacute; par l'IA</td></tr>
+                            <tr><td class="font-mono font-bold">final_text</td><td>text</td><td>Le texte final envoy&eacute; (apr&egrave;s modif &eacute;ventuelle par Marion/toi)</td></tr>
+                            <tr><td class="font-mono font-bold">was_edited</td><td>boolean</td><td>Est-ce que le brouillon IA a &eacute;t&eacute; modifi&eacute; avant envoi ?</td></tr>
+                            <tr><td class="font-mono font-bold">confidence_score</td><td>decimal</td><td>Niveau de confiance de l'IA (0.0 &agrave; 1.0)</td></tr>
+                            <tr><td class="font-mono font-bold">tokens</td><td>integer</td><td>Nombre de tokens utilis&eacute;s (pour le suivi des co&ucirc;ts)</td></tr>
+                            <tr><td class="font-mono font-bold">cost_eur</td><td>decimal</td><td>Co&ucirc;t en euros de cette r&eacute;ponse IA</td></tr>
+                            <tr><td class="font-mono font-bold">response_time_ms</td><td>integer</td><td>Temps de r&eacute;ponse en millisecondes</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Example conversation flow -->
+            <div class="neo-card p-8 bg-gray-50 slide-in">
+                <h4 class="font-heading text-xl font-bold mb-6 text-center">&#128260; Exemple : un &eacute;change complet</h4>
+                <div class="max-w-3xl mx-auto space-y-4">
+                    <!-- Inbound -->
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 bg-martin-teal neo-border-2 flex items-center justify-center font-bold text-sm">IN</div>
+                        <div class="bg-white neo-border-2 p-4 flex-1">
+                            <div class="text-xs text-gray-500 mb-1">Client &#8594; H&ocirc;tel | 14h32</div>
+                            <p class="text-sm">"Bonjour, nous arrivons le 15 mars. Pouvez-vous recommander un bon restaurant pour notre anniversaire de mariage ?"</p>
+                        </div>
+                    </div>
+                    <!-- AI processing -->
+                    <div class="text-center">
+                        <div class="inline-block bg-martin-purple text-white neo-border-2 px-4 py-2 text-sm font-heading font-bold">
+                            &#129504; L'IA analyse : category=restaurant + special_occasion | confidence: 0.94 | 1.2s
+                        </div>
+                    </div>
+                    <!-- Outbound -->
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-10 h-10 bg-martin-pink neo-border-2 flex items-center justify-center font-bold text-sm">OUT</div>
+                        <div class="bg-martin-yellow neo-border-2 p-4 flex-1">
+                            <div class="text-xs text-gray-500 mb-1">H&ocirc;tel &#8594; Client | 14h33 (brouillon IA, envoy&eacute; par Marion)</div>
+                            <p class="text-sm">"Cher M. et Mme Dupont, f&eacute;licitations pour votre anniversaire ! Pour une soir&eacute;e sp&eacute;ciale, je vous recommande Le Pressoir &agrave; Grand Case - une cuisine gastronomique fran&ccedil;aise dans un cadre romantique..."</p>
+                            <div class="mt-2 text-xs"><span class="bg-white px-2 py-1 neo-border-2">was_edited: false</span> <span class="bg-white px-2 py-1 neo-border-2 ml-1">cost: 0.003&#8364;</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 9: TABLE email_templates             -->
+    <!-- ============================================ -->
+    <section id="templates" class="py-20 px-6 bg-martin-yellow relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">09</span>
+                <span class="neo-btn bg-dark text-white px-4 py-1 text-sm mb-4 inline-block">TABLE: email_templates</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 12 templates email</h2>
+                <p class="text-xl text-gray-700 mt-4 max-w-3xl mx-auto">Des mod&egrave;les pr&eacute;-&eacute;crits que l'IA utilise comme base. Elle les personnalise ensuite avec les infos du client. Comme des lettres types, mais en beaucoup mieux.</p>
+            </div>
+
+            <!-- Template grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 stagger-children">
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127860;</span>
+                        <h4 class="font-heading font-bold">Restaurant Reco FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {restaurant_name}, {cuisine_type}, {price_range}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127860;</span>
+                        <h4 class="font-heading font-bold">Restaurant Reco EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {restaurant_name}, {cuisine_type}, {price_range}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127860;</span>
+                        <h4 class="font-heading font-bold">Restaurant WhatsApp FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-green-100 px-2 py-1 neo-border-2">WhatsApp</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Version courte pour WhatsApp avec emojis</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127860;</span>
+                        <h4 class="font-heading font-bold">Restaurant WhatsApp EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-green-100 px-2 py-1 neo-border-2">WhatsApp</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Short WhatsApp version with emojis</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#128663;</span>
+                        <h4 class="font-heading font-bold">Car Rental FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-pink px-2 py-1 neo-border-2 font-bold">car_rental</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {arrival_date}, {departure_date}, {car_type}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#128663;</span>
+                        <h4 class="font-heading font-bold">Car Rental EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-pink px-2 py-1 neo-border-2 font-bold">car_rental</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {arrival_date}, {departure_date}, {car_type}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#10060;</span>
+                        <h4 class="font-heading font-bold">Cancellation FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-red-200 px-2 py-1 neo-border-2 font-bold">cancellation</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {reservation_id}, {cancellation_policy}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#10060;</span>
+                        <h4 class="font-heading font-bold">Cancellation EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-red-200 px-2 py-1 neo-border-2 font-bold">cancellation</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {reservation_id}, {cancellation_policy}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#128075;</span>
+                        <h4 class="font-heading font-bold">Welcome Board FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">welcome</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {arrival_date}, {room_name}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#128075;</span>
+                        <h4 class="font-heading font-bold">Welcome Board EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">welcome</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {arrival_date}, {room_name}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127874;</span>
+                        <h4 class="font-heading font-bold">Birthday FR</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-neo-orange px-2 py-1 neo-border-2 font-bold">special_occasion</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {occasion_type}, {surprise_options}</p>
+                </div>
+                <div class="neo-card p-5 bg-white slide-in">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xl">&#127874;</span>
+                        <h4 class="font-heading font-bold">Birthday EN</h4>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <span class="text-xs bg-neo-orange px-2 py-1 neo-border-2 font-bold">special_occasion</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">email</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="text-xs text-gray-600">Variables: {guest_name}, {occasion_type}, {surprise_options}</p>
+                </div>
+            </div>
+
+            <!-- Example template -->
+            <div class="neo-card p-8 bg-white slide-in">
+                <h4 class="font-heading text-xl font-bold mb-4">&#128221; Exemple de template : Restaurant Reco FR</h4>
+                <div class="bg-gray-50 neo-border-2 p-6 font-mono text-sm leading-relaxed">
+                    <p>Bonjour <span class="bg-martin-yellow px-2 py-1 neo-border-2 font-bold">{guest_name}</span>,</p>
+                    <br>
+                    <p>Merci pour votre message ! Pour votre s&eacute;jour du <span class="bg-martin-teal px-2 py-1 neo-border-2 font-bold">{arrival_date}</span>, je vous recommande chaleureusement <span class="bg-martin-pink px-2 py-1 neo-border-2 font-bold">{restaurant_name}</span>.</p>
+                    <br>
+                    <p>C'est un restaurant de cuisine <span class="bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">{cuisine_type}</span> avec une gamme de prix <span class="bg-neo-orange px-2 py-1 neo-border-2 font-bold">{price_range}</span>. Je peux vous r&eacute;server une table si vous le souhaitez.</p>
+                    <br>
+                    <p>A tr&egrave;s bient&ocirc;t au Martin !</p>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">&#128161; L'IA remplace automatiquement les variables entre <strong>{accolades}</strong> par les vraies infos du client et du restaurant.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 10: TABLE email_examples             -->
+    <!-- ============================================ -->
+    <section id="examples" class="py-20 px-6 bg-dark text-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number text-white opacity-5">10</span>
+                <span class="neo-btn bg-martin-teal text-black px-4 py-1 text-sm mb-4 inline-block">TABLE: email_examples</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 9 exemples pour l'IA</h2>
+                <p class="text-xl text-gray-400 mt-4 max-w-3xl mx-auto">Des conversations r&eacute;elles (ou quasi) que l'IA utilise pour apprendre comment r&eacute;pondre. C'est comme lui montrer "voil&agrave; comment on fait chez nous".</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128675;</span>
+                        <h4 class="font-heading font-bold">Kayak + timing Pinel</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">activity</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Proposer les cr&eacute;neaux id&eacute;aux (matin t&ocirc;t)</p>
+                    <p class="text-sm">&#8226; Mentionner les conditions m&eacute;t&eacute;o</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128197;</span>
+                        <h4 class="font-heading font-bold">Extension s&eacute;jour</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-pink px-2 py-1 neo-border-2 font-bold">modification</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; V&eacute;rifier la dispo avant de confirmer</p>
+                    <p class="text-sm">&#8226; Proposer un upgrade si possible</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#127860;</span>
+                        <h4 class="font-heading font-bold">Restaurant personnalis&eacute;</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Adapter les recos selon les go&ucirc;ts</p>
+                    <p class="text-sm">&#8226; Varier les suggestions</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128106;</span>
+                        <h4 class="font-heading font-bold">Multi-chambres famille</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-yellow px-2 py-1 neo-border-2 font-bold">reservation_inquiry</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; G&eacute;rer les demandes multi-chambres</p>
+                    <p class="text-sm">&#8226; Recommander les suites familiales</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#9992;&#65039;</span>
+                        <h4 class="font-heading font-bold">Pr&eacute;-arriv&eacute;e compl&egrave;te</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">pre_arrival</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Checklist compl&egrave;te pr&eacute;-arriv&eacute;e</p>
+                    <p class="text-sm">&#8226; Transport, parking, early check-in</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128179;</span>
+                        <h4 class="font-heading font-bold">Modification Advance Purchase</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-red-200 px-2 py-1 neo-border-2 font-bold">modification</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Expliquer les conditions non-remboursables</p>
+                    <p class="text-sm">&#8226; Rester empathique et proposer des alternatives</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#127874;</span>
+                        <h4 class="font-heading font-bold">Anniversaire + transfert</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-neo-orange px-2 py-1 neo-border-2 font-bold">special_occasion</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Coordonner surprise + logistique</p>
+                    <p class="text-sm">&#8226; Proposer des extras (g&acirc;teau, champagne)</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128197;</span>
+                        <h4 class="font-heading font-bold">Planning 10 jours restaurants</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">restaurant</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">EN</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Cr&eacute;er un planning complet jour par jour</p>
+                    <p class="text-sm">&#8226; Alterner les types de cuisine</p>
+                </div>
+                <div class="neo-card p-6 bg-white text-black slide-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">&#128588;</span>
+                        <h4 class="font-heading font-bold">Post-s&eacute;jour et remerciements</h4>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <span class="text-xs bg-neo-lime px-2 py-1 neo-border-2 font-bold">post_stay</span>
+                        <span class="text-xs bg-gray-100 px-2 py-1 neo-border-2">FR</span>
+                    </div>
+                    <p class="font-bold text-martin-purple text-sm">Ce que l'IA apprend :</p>
+                    <p class="text-sm">&#8226; Remercier chaleureusement</p>
+                    <p class="text-sm">&#8226; Demander un avis TripAdvisor/Google</p>
+                </div>
+            </div>
+
+            <div class="mt-8 neo-card p-6 bg-martin-teal text-black slide-in">
+                <p class="text-sm"><strong>&#128161; Pourquoi c'est important ?</strong> Ces exemples servent de "m&eacute;moire musculaire" pour l'IA. Plus on en ajoute, plus l'IA comprend le style et les r&eacute;flexes du Martin. C'est comme former un nouveau employ&eacute; : on lui montre comment on fait, et il apprend.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 11: TABLE ai_rules                   -->
+    <!-- ============================================ -->
+    <section id="ai-rules" class="py-20 px-6 bg-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">11</span>
+                <span class="neo-btn bg-martin-pink px-4 py-1 text-sm mb-4 inline-block">TABLE: ai_rules</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 25 r&egrave;gles de l'IA</h2>
+                <p class="text-xl text-gray-600 mt-4 max-w-3xl mx-auto">Les r&egrave;gles disent &agrave; l'IA quoi faire et quand. C'est comme un manuel d'instructions. Chaque r&egrave;gle a une priorit&eacute; (0-100) : plus le chiffre est haut, plus c'est important.</p>
+            </div>
+
+            <!-- Priority scale -->
+            <div class="neo-card p-6 bg-gray-50 mb-12 slide-in">
+                <h4 class="font-heading text-lg font-bold mb-4 text-center">&#127919; &Eacute;chelle de priorit&eacute; (0-100)</h4>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <span class="neo-border-2 bg-red-100 px-4 py-2 font-heading font-bold text-sm">90-100 : CRITIQUE - Toujours appliquer</span>
+                    <span class="neo-border-2 bg-orange-100 px-4 py-2 font-heading font-bold text-sm">70-89 : IMPORTANT - Presque toujours</span>
+                    <span class="neo-border-2 bg-yellow-100 px-4 py-2 font-heading font-bold text-sm">50-69 : NORMAL - Quand applicable</span>
+                    <span class="neo-border-2 bg-green-100 px-4 py-2 font-heading font-bold text-sm">0-49 : BONUS - Si possible</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Response rules -->
+                <div class="slide-in">
+                    <h3 class="font-heading text-2xl font-bold mb-4 flex items-center gap-2">
+                        <span class="bg-martin-teal neo-border-2 px-3 py-1 text-sm">RESPONSE</span>
+                        7 r&egrave;gles de r&eacute;ponse
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#127860; Restaurant</span>
+                                <span class="bg-orange-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 80</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Toujours recommander 2-3 options avec prix, r&eacute;server si demand&eacute;</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128663; Location voiture</span>
+                                <span class="bg-orange-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 75</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Rediriger vers Escale Mail (S&eacute;bastien &amp; Eve), mentionner les tarifs</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#127874; Occasion sp&eacute;ciale</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 90</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Proposer extras : g&acirc;teau, champagne, d&eacute;co chambre, transfert priv&eacute;</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#127946; Activit&eacute;s</span>
+                                <span class="bg-yellow-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 65</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Proposer selon la saison, mentionner les partenaires</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128652; Transport</span>
+                                <span class="bg-orange-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 70</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Donner les horaires pr&eacute;cis ferry/navette depuis la base</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#9992;&#65039; Transfert a&eacute;roport</span>
+                                <span class="bg-orange-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 75</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Proposer taxi priv&eacute; ou navette, donner les temps de trajet</p>
+                        </div>
+                        <div class="neo-card p-4 bg-white">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128233; Pr&eacute;-arriv&eacute;e</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 85</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Envoyer infos compl&egrave;tes : check-in, parking, WiFi, cl&eacute;s</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escalation + Tone rules -->
+                <div class="slide-in">
+                    <!-- Escalation rules -->
+                    <h3 class="font-heading text-2xl font-bold mb-4 flex items-center gap-2">
+                        <span class="bg-martin-pink neo-border-2 px-3 py-1 text-sm">ESCALATION</span>
+                        R&egrave;gles d'escalade
+                    </h3>
+                    <div class="space-y-3 mb-8">
+                        <div class="neo-card p-4 bg-red-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128680; R&eacute;servation restaurant au partenaire</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 95</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Quand un client veut r&eacute;server au resto &#8594; envoyer au partenaire concern&eacute;</p>
+                        </div>
+                        <div class="neo-card p-4 bg-red-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128222; Contact partenaire n&eacute;cessaire</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 90</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Quand l'IA ne peut pas r&eacute;pondre seule &#8594; escalader &agrave; Marion/Emmanuel</p>
+                        </div>
+                        <div class="neo-card p-4 bg-red-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128588; Post-s&eacute;jour toujours escalader</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 95</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Les emails post-s&eacute;jour sont toujours envoy&eacute;s &agrave; un humain pour r&eacute;vision</p>
+                        </div>
+                        <div class="neo-card p-4 bg-red-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128176; Prix et dispo incertains</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 100</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Jamais inventer un prix ou une dispo. En cas de doute &#8594; escalader</p>
+                        </div>
+                        <div class="neo-card p-4 bg-red-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128545; Plainte client</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 100</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Toujours escalader les plaintes &agrave; Emmanuel directement</p>
+                        </div>
+                    </div>
+
+                    <!-- Tone rules -->
+                    <h3 class="font-heading text-2xl font-bold mb-4 flex items-center gap-2">
+                        <span class="bg-martin-purple text-white neo-border-2 px-3 py-1 text-sm">TONE</span>
+                        R&egrave;gles de ton
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="neo-card p-4 bg-purple-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128161; Anticipation proactive</span>
+                                <span class="bg-orange-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 80</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Ne pas juste r&eacute;pondre : anticiper les besoins du client et proposer plus</p>
+                        </div>
+                        <div class="neo-card p-4 bg-purple-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#128176; Upsell naturel</span>
+                                <span class="bg-yellow-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 60</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Sugg&eacute;rer des upgrades de chambre ou des services extra, sans forcer</p>
+                        </div>
+                        <div class="neo-card p-4 bg-purple-50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">&#10084;&#65039; Recommandations honn&ecirc;tes</span>
+                                <span class="bg-red-100 neo-border-2 px-2 py-1 text-xs font-bold">P: 85</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Recommander ce qui est vraiment bien, pas juste les partenaires. L'honn&ecirc;tet&eacute; d'abord.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 12: TABLE partners                   -->
+    <!-- ============================================ -->
+    <section id="partners" class="py-20 px-6 bg-martin-teal relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 slide-in relative">
+                <span class="section-number">12</span>
+                <span class="neo-btn bg-dark text-white px-4 py-1 text-sm mb-4 inline-block">TABLE: partners</span>
+                <h2 class="font-heading text-4xl md:text-6xl font-black mt-4">Les 7 partenaires de confiance</h2>
+                <p class="text-xl text-gray-700 mt-4 max-w-3xl mx-auto">L'IA connait tes partenaires et sait quand les recommander. Quand un client demande une location de voiture, l'IA envoie directement vers S&eacute;bastien.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#128663;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Escale Mail</h4>
+                            <span class="text-xs bg-martin-pink px-2 py-1 neo-border-2 font-bold">car_rental</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Location de voitures. Contact : <strong>S&eacute;bastien &amp; Eve</strong>. Le partenaire num&eacute;ro 1 pour les clients qui veulent explorer l'&icirc;le.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">contact: sebastien@escalemailsxm.com</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#129343;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Bubble Shop</h4>
+                            <span class="text-xs bg-martin-teal px-2 py-1 neo-border-2 font-bold">snorkeling</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Snorkeling et plong&eacute;e. Bas&eacute; &agrave; <strong>Grand Case</strong>. Id&eacute;al pour les familles et les d&eacute;butants.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">zone: Grand Case</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#127947;&#65039;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Hopfit Hope Estate</h4>
+                            <span class="text-xs bg-neo-orange px-2 py-1 neo-border-2 font-bold">gym</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Salle de sport. <strong>15 EUR/jour</strong>. Pour les clients qui veulent garder leur routine fitness pendant les vacances.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">prix: 15 EUR/jour</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#9973;&#65039;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Scoobi Too</h4>
+                            <span class="text-xs bg-neo-blue text-white px-2 py-1 neo-border-2 font-bold">boat_tours</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Tours en bateau au d&eacute;part de <strong>Marigot</strong>. Excursions &agrave; la journ&eacute;e vers les &icirc;les voisines, snorkeling, coucher de soleil.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">zone: Marigot</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#127795;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Lottery Farm</h4>
+                            <span class="text-xs bg-neo-lime px-2 py-1 neo-border-2 font-bold">excursion</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Excursion c&ocirc;t&eacute; <strong>hollandais</strong>. Tyrolienne, rando, piscine, bar dans la nature. Une sortie diff&eacute;rente et fun.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">zone: Dutch side</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#9875;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Great Bay Express</h4>
+                            <span class="text-xs bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">ferry</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Ferry <strong>SXM &#8596; Saint-Barth</strong>. 45 min de trajet. Id&eacute;al pour une excursion &agrave; la journ&eacute;e &agrave; St-Barth.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">trajet: 45 min | SXM-SBH</div>
+                </div>
+
+                <div class="neo-card p-6 bg-white slide-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">&#128674;</span>
+                        <div>
+                            <h4 class="font-heading font-black text-lg">Ferry Anguilla</h4>
+                            <span class="text-xs bg-martin-purple text-white px-2 py-1 neo-border-2 font-bold">ferry</span>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-3">Ferry <strong>Marigot &#8596; Anguilla</strong>. 25 min. Pour d&eacute;couvrir les plages incroyables d'Anguilla &agrave; la journ&eacute;e.</p>
+                    <div class="bg-gray-50 neo-border-2 p-2 text-xs font-mono">trajet: 25 min | 15 EUR | Marigot-Anguilla</div>
+                </div>
+            </div>
+        </div>
+    </section>
+

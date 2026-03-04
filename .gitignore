@@ -1,0 +1,34 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & runtime
+*.log
+processed_ids.txt
+
+# Claude Code
+.claude/
+
+# Embedded repos
+le-martin-ia-proposal/
+presentation-bdd/

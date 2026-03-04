@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Résultats IA Concierge — Le Martin Hotel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { mono: ['JetBrains Mono', 'monospace'], sans: ['Inter', 'system-ui', 'sans-serif'] },
+      colors: {
+        brand: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' },
+        neo: { yellow:'#facc15', pink:'#f472b6', blue:'#60a5fa', orange:'#fb923c', lime:'#a3e635', red:'#f87171', purple:'#c084fc', cyan:'#22d3ee' }
+      },
+      boxShadow: { neo: '4px 4px 0px 0px rgba(0,0,0,1)', 'neo-lg': '6px 6px 0px 0px rgba(0,0,0,1)', 'neo-xl': '8px 8px 0px 0px rgba(0,0,0,1)' },
+      keyframes: {
+        'slide-up': { '0%': { opacity: 0, transform: 'translateY(40px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+        'slide-right': { '0%': { opacity: 0, transform: 'translateX(-40px)' }, '100%': { opacity: 1, transform: 'translateX(0)' } },
+        'fade-in': { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+        'bounce-in': { '0%': { opacity: 0, transform: 'scale(0.3)' }, '50%': { transform: 'scale(1.05)' }, '70%': { transform: 'scale(0.9)' }, '100%': { opacity: 1, transform: 'scale(1)' } },
+        'pulse-glow': { '0%, 100%': { boxShadow: '0 0 0 0 rgba(34, 197, 94, 0.4)' }, '50%': { boxShadow: '0 0 20px 10px rgba(34, 197, 94, 0.1)' } },
+        'wiggle': { '0%, 100%': { transform: 'rotate(0deg)' }, '25%': { transform: 'rotate(-3deg)' }, '75%': { transform: 'rotate(3deg)' } },
+        'counter': { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+        'marquee': { '0%': { transform: 'translateX(0%)' }, '100%': { transform: 'translateX(-50%)' } },
+      },
+      animation: {
+        'slide-up': 'slide-up 0.6s ease-out forwards',
+        'slide-right': 'slide-right 0.6s ease-out forwards',
+        'fade-in': 'fade-in 0.8s ease-out forwards',
+        'bounce-in': 'bounce-in 0.8s ease-out forwards',
+        'pulse-glow': 'pulse-glow 2s infinite',
+        'wiggle': 'wiggle 0.5s ease-in-out',
+        'counter': 'counter 0.4s ease-out forwards',
+        'marquee': 'marquee 30s linear infinite',
+      }
+    }
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #fafaf9; }
+  .neo-card { border: 3px solid #000; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.2s ease; }
+  .neo-card:hover { box-shadow: 6px 6px 0px 0px rgba(0,0,0,1); transform: translate(-2px, -2px); }
+  .neo-btn { border: 3px solid #000; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.15s ease; cursor: pointer; }
+  .neo-btn:hover { box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); transform: translate(2px, 2px); }
+  .neo-btn:active { box-shadow: 0px 0px 0px 0px rgba(0,0,0,1); transform: translate(4px, 4px); }
+  .neo-tag { border: 2px solid #000; box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); }
+  .section-reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+  .section-reveal.visible { opacity: 1; transform: translateY(0); }
+  .email-card { border: 3px solid #000; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .email-card:hover { transform: translateY(-4px) rotate(-0.5deg); box-shadow: 8px 8px 0px 0px rgba(0,0,0,1); }
+  .stat-number { font-variant-numeric: tabular-nums; }
+  .progress-bar { transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  .tooltip { position: relative; }
+  .tooltip::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(10px); background: #000; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: all 0.2s ease; }
+  .tooltip:hover::after { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .confetti { position: fixed; pointer-events: none; z-index: 9999; }
+  @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+  .float { animation: float 3s ease-in-out infinite; }
+  .marquee-track { display: flex; width: max-content; animation: marquee 30s linear infinite; }
+  .marquee-track:hover { animation-play-state: paused; }
+  .gradient-text { background: linear-gradient(135deg, #16a34a, #22d3ee, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #fafaf9; }
+  ::-webkit-scrollbar-thumb { background: #000; border: 2px solid #fafaf9; }
+  .draft-badge::before { content: ''; position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #22c55e; border-radius: 50%; border: 2px solid #000; animation: pulse-glow 2s infinite; }
+  ::selection { background: #facc15; color: #000; }
+</style>
+</head>
+<body class="bg-stone-50 text-stone-900">
+
+<!-- ============================================ -->
+<!-- SECTION 1: NAVBAR -->
+<!-- ============================================ -->
+<nav class="fixed top-0 w-full bg-white border-b-3 border-black z-50 backdrop-blur-sm bg-white/95" style="border-bottom: 3px solid #000;">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-brand-500 border-2 border-black rounded-lg flex items-center justify-center neo-btn">
+        <span class="text-white font-black text-lg">M</span>
+      </div>
+      <span class="font-extrabold text-lg tracking-tight">IA Concierge</span>
+      <span class="neo-tag bg-neo-lime px-2 py-0.5 text-xs font-bold rounded-md ml-2">v1.0</span>
+    </div>
+    <div class="hidden md:flex items-center gap-1 text-sm font-semibold">
+      <a href="#resultats" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Résultats</a>
+      <a href="#emails" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Emails</a>
+      <a href="#escalations" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Escalations</a>
+      <a href="#couts" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Coûts</a>
+      <a href="#corrections" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Corrections</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="relative draft-badge">
+        <span class="neo-tag bg-brand-100 text-brand-800 px-3 py-1 text-xs font-bold rounded-md">MODE OBSERVATION</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================ -->
+<!-- SECTION 2: HERO — Hello Emmanuel -->
+<!-- ============================================ -->
+<section class="min-h-screen flex items-center pt-16 relative overflow-hidden" id="top">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(34,197,94,0.08),transparent_50%)]"></div>
+  <div class="absolute top-32 right-20 w-72 h-72 bg-neo-yellow/20 rounded-full blur-3xl"></div>
+  <div class="absolute bottom-20 left-10 w-96 h-96 bg-neo-blue/10 rounded-full blur-3xl"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+    <div class="section-reveal">
+      <div class="inline-flex items-center gap-2 neo-tag bg-neo-yellow px-4 py-2 rounded-full text-sm font-bold mb-8">
+        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+        Sessions de test — 3 mars (17h30-20h) & 4 mars (9h-14h)
+      </div>
+      <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black leading-[0.9] tracking-tighter mb-8">
+        Hello Emmanuel<span class="text-brand-500">.</span>
+      </h1>
+      <div class="max-w-3xl">
+        <p class="text-xl sm:text-2xl text-stone-600 leading-relaxed mb-6">
+          J'ai fait tourner le système IA Concierge sur les vrais emails reçus sur <span class="font-mono bg-stone-100 px-2 py-1 rounded border border-stone-200">info@lemartinhotel.com</span> entre hier et aujourd'hui pour voir comment il s'en sort.
+        </p>
+        <p class="text-lg text-stone-500 leading-relaxed mb-10">
+          Tu n'as normalement rien vu dans Outlook — <strong class="text-stone-700">le système a simulé les réponses sans rien envoyer</strong>. Aucun brouillon créé, aucun email parti. Il a juste observé et généré les réponses en local pour qu'on puisse les analyser ensemble avant de passer en prod.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-4">
+        <a href="#resultats" class="neo-btn bg-brand-500 text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center gap-2">
+          Voir les résultats <span class="text-2xl">↓</span>
+        </a>
+        <a href="#emails" class="neo-btn bg-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center gap-2">
+          Détail des emails <span>→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 3: CONTEXTE DU TEST -->
+<!-- ============================================ -->
+<section class="py-20 bg-white border-t-3 border-b-3 border-black" style="border-top: 3px solid #000; border-bottom: 3px solid #000;">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-blue border-2 border-black rounded-lg flex items-center justify-center text-2xl">📋</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Contexte du test</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="neo-card bg-stone-50 p-8 rounded-2xl">
+        <div class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-2">Période</div>
+        <div class="text-2xl font-black mb-1">3 — 4 Mars 2026</div>
+        <div class="text-stone-500">2 sessions de test</div>
+        <div class="mt-4 font-mono text-sm bg-white p-3 rounded-lg border-2 border-stone-200">
+          <div><span class="text-brand-600 font-bold">Session 1 :</span> 3 mars, 17h30 → 20h</div>
+          <div class="mt-1"><span class="text-brand-600 font-bold">Session 2 :</span> 4 mars, 9h → 14h</div>
+          <div class="mt-1 text-stone-400">~7h30 d'observation au total</div>
+        </div>
+      </div>
+      <div class="neo-card bg-stone-50 p-8 rounded-2xl">
+        <div class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-2">Mode</div>
+        <div class="text-2xl font-black mb-1">Observation pure</div>
+        <div class="text-stone-500">Le système lit, analyse et génère des réponses</div>
+        <div class="mt-4 font-mono text-sm bg-white p-3 rounded-lg border-2 border-stone-200">
+          <span class="text-neo-red font-bold">0 email envoyé</span> — tout reste en local
+        </div>
+      </div>
+      <div class="neo-card bg-stone-50 p-8 rounded-2xl">
+        <div class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-2">Modèle IA</div>
+        <div class="text-2xl font-black mb-1">Claude Sonnet 4</div>
+        <div class="text-stone-500">Anthropic — modèle rapide et précis</div>
+        <div class="mt-4 font-mono text-sm bg-white p-3 rounded-lg border-2 border-stone-200">
+          Polling toutes les <span class="text-brand-600">60 secondes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 4: COMMENT ÇA MARCHE -->
+<!-- ============================================ -->
+<section class="py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-purple border-2 border-black rounded-lg flex items-center justify-center text-2xl">⚙️</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Comment ça marche — Le parcours d'un email</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Chaque email reçu passe par un pipeline de 15 étapes automatiques. Voici le parcours simplifié :</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="neo-card bg-neo-yellow/30 p-6 rounded-2xl text-center">
+        <div class="text-3xl mb-3">📩</div>
+        <div class="font-bold text-sm mb-1">1. Réception</div>
+        <div class="text-xs text-stone-500">L'email arrive dans la boîte Outlook</div>
+      </div>
+      <div class="neo-card bg-neo-blue/20 p-6 rounded-2xl text-center">
+        <div class="text-3xl mb-3">🔍</div>
+        <div class="font-bold text-sm mb-1">2. Filtrage</div>
+        <div class="text-xs text-stone-500">Spam, internes, fournisseurs → poubelle</div>
+      </div>
+      <div class="neo-card bg-neo-orange/20 p-6 rounded-2xl text-center">
+        <div class="text-3xl mb-3">⚠️</div>
+        <div class="font-bold text-sm mb-1">3. Escalation ?</div>
+        <div class="text-xs text-stone-500">Plainte, annulation, paiement → Emmanuel</div>
+      </div>
+      <div class="neo-card bg-neo-purple/20 p-6 rounded-2xl text-center">
+        <div class="text-3xl mb-3">🤖</div>
+        <div class="font-bold text-sm mb-1">4. IA génère</div>
+        <div class="text-xs text-stone-500">Claude écrit la réponse comme Marion</div>
+      </div>
+      <div class="neo-card bg-brand-100 p-6 rounded-2xl text-center">
+        <div class="text-3xl mb-3">✅</div>
+        <div class="font-bold text-sm mb-1">5. Vérification</div>
+        <div class="text-xs text-stone-500">Score de confiance → envoi ou escalation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 5: STATS GLOBALES -->
+<!-- ============================================ -->
+<section class="py-20 bg-black text-white" id="resultats">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full text-sm font-bold mb-6 border border-white/20">
+        <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
+        Résultats globaux
+      </div>
+      <h2 class="text-4xl sm:text-6xl font-black">Les chiffres clés</h2>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors group">
+        <div class="text-5xl sm:text-7xl font-black text-brand-400 stat-number group-hover:scale-110 transition-transform" data-count="24">24</div>
+        <div class="text-stone-400 font-medium mt-2">Emails reçus</div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors group">
+        <div class="text-5xl sm:text-7xl font-black text-neo-blue stat-number group-hover:scale-110 transition-transform" data-count="10">10</div>
+        <div class="text-stone-400 font-medium mt-2">Réponses IA générées</div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors group">
+        <div class="text-5xl sm:text-7xl font-black text-neo-orange stat-number group-hover:scale-110 transition-transform" data-count="11">11</div>
+        <div class="text-stone-400 font-medium mt-2">Escalations</div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors group">
+        <div class="text-5xl sm:text-7xl font-black text-neo-lime stat-number group-hover:scale-110 transition-transform">3</div>
+        <div class="text-stone-400 font-medium mt-2">Emails filtrés auto</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+        <div class="text-3xl font-black text-neo-yellow stat-number">0,85</div>
+        <div class="text-stone-400 text-sm mt-1">Confiance moyenne</div>
+        <div class="w-full bg-white/10 rounded-full h-2 mt-3"><div class="bg-neo-yellow h-2 rounded-full progress-bar" style="width:85%"></div></div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+        <div class="text-3xl font-black text-brand-400 stat-number">0,83 €</div>
+        <div class="text-stone-400 text-sm mt-1">Coût total IA</div>
+        <div class="text-xs text-stone-500 mt-2">~0,08 € par réponse</div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+        <div class="text-3xl font-black text-neo-cyan stat-number">29s</div>
+        <div class="text-stone-400 text-sm mt-1">Temps moyen de réponse</div>
+        <div class="text-xs text-stone-500 mt-2">De 6s à 108s selon la complexité</div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+        <div class="text-3xl font-black text-neo-pink stat-number">0</div>
+        <div class="text-stone-400 text-sm mt-1">Emails envoyés</div>
+        <div class="text-xs text-stone-500 mt-2">Mode observation uniquement</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 6: MARQUEE BANDEAU -->
+<!-- ============================================ -->
+<section class="bg-neo-yellow border-t-3 border-b-3 border-black py-3 overflow-hidden" style="border-top:3px solid #000;border-bottom:3px solid #000;">
+  <div class="marquee-track">
+    <span class="text-sm font-black uppercase tracking-widest whitespace-nowrap px-8">✦ MODE OBSERVATION ✦ AUCUN EMAIL ENVOYÉ ✦ TEST SUR VRAIS EMAILS ✦ SESSION 1 : 3 MARS 17h30-20h ✦ SESSION 2 : 4 MARS 9h-14h ✦ CONFIANCE 0.85 ✦ COÛT 0.83€ ✦ 10 RÉPONSES GÉNÉRÉES ✦</span>
+    <span class="text-sm font-black uppercase tracking-widest whitespace-nowrap px-8">✦ MODE OBSERVATION ✦ AUCUN EMAIL ENVOYÉ ✦ TEST SUR VRAIS EMAILS ✦ SESSION 1 : 3 MARS 17h30-20h ✦ SESSION 2 : 4 MARS 9h-14h ✦ CONFIANCE 0.85 ✦ COÛT 0.83€ ✦ 10 RÉPONSES GÉNÉRÉES ✦</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 7: TITRE EMAILS TRAITÉS -->
+<!-- ============================================ -->
+<section class="py-20" id="emails">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-brand-500 border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">✉️</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Emails traités par l'IA — Détail complet</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-4">
+      Voici chaque email que l'IA a reçu, analysé, et pour lequel elle a généré une réponse. La réponse n'a <strong class="text-stone-700">jamais été envoyée</strong> — elle est juste stockée pour qu'on puisse vérifier la qualité.
+    </p>
+    <div class="flex flex-wrap gap-2 mb-10">
+      <span class="neo-tag bg-brand-100 text-brand-800 px-3 py-1 text-xs font-bold rounded-full">availability</span>
+      <span class="neo-tag bg-blue-100 text-blue-800 px-3 py-1 text-xs font-bold rounded-full">transfer</span>
+      <span class="neo-tag bg-purple-100 text-purple-800 px-3 py-1 text-xs font-bold rounded-full">compliment</span>
+      <span class="neo-tag bg-orange-100 text-orange-800 px-3 py-1 text-xs font-bold rounded-full">restaurant</span>
+      <span class="neo-tag bg-pink-100 text-pink-800 px-3 py-1 text-xs font-bold rounded-full">info_request</span>
+      <span class="neo-tag bg-stone-100 text-stone-800 px-3 py-1 text-xs font-bold rounded-full">other</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 8: EMAIL #1 — Tyler Ratcliff -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-blue-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-neo-blue border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">1</div>
+          <div>
+            <div class="font-black text-lg">Tyler Ratcliff</div>
+            <div class="text-sm text-stone-500 font-mono">ratcliff.tylerd@gmail.com</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-blue-200 text-blue-900 px-3 py-1 text-xs font-bold rounded-full">transfer</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">3 mars — 17h37</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Re: Airport Shuttle Question</div>
+            <div class="text-stone-600 text-sm leading-relaxed">Tyler demande si son chauffeur l'attendra à l'aéroport avec un panneau à son nom pour le transfert vers l'hôtel. C'est un email de suivi dans un thread existant où le transfert a déjà été organisé.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Tyler,</em><br><br>
+              <em>Yes, absolutely! Your driver will be waiting for you at the airport with a sign displaying your name "Tyler Albritton" — you'll easily spot them in the arrival area.</em><br><br>
+              <em>Your driver will have all the necessary details:</em><br>
+              <em>- Name: Tyler Albritton</em><br>
+              <em>- Flight: Delta DL1894 from Atlanta</em><br>
+              <em>- Arrival: 2:55 PM</em><br><br>
+              <em>The drive from the airport to Le Martin takes about 15 minutes, and your driver will be happy to point out some sights along the way. We can't wait to welcome you!</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA — comment elle a traité cet email</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse du message :</strong> L'IA lit l'email et le thread complet. Elle détecte que c'est une question simple sur le transfert aéroport, pas une demande de réservation ni un changement.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Décision outils :</strong> Aucun outil nécessaire. Les infos du transfert (vol, heure, nom) sont déjà dans le thread de l'email précédent. Pas besoin de vérifier la dispo ou les prix.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Rédaction :</strong> L'IA rédige une réponse rassurante en reprenant les détails du vol (DL1894, 14h55) pour montrer au client que tout est bien noté. Ton chaleureux et personnalisé.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>Rapide et efficace :</strong> 7 secondes, aucun appel d'outil, 0,02 € — c'est le genre de réponse que l'IA gère parfaitement toute seule.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.83</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,02 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">7s</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Outils</span><span class="text-stone-500">Aucun — toutes les infos étaient dans le thread</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 9: EMAIL #2 — Rebecca Jacobs -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-green-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-brand-500 border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">2</div>
+          <div>
+            <div class="font-black text-lg">Rebecca Jacobs</div>
+            <div class="text-sm text-stone-500 font-mono">rebeccajacobs@gmail.com</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-brand-200 text-brand-900 px-3 py-1 text-xs font-bold rounded-full">availability</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="neo-tag bg-neo-yellow px-3 py-1 text-xs font-bold rounded-full">⭐ Meilleure réponse</span>
+          <span class="font-mono text-sm text-stone-400">3 mars — 17h45</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Two friends, 3 nights — 3 Dec-6 Dec</div>
+            <div class="text-stone-600 text-sm leading-relaxed">Rebecca et son amie Amanda cherchent une chambre pour 2 amies, 3 nuits en décembre (3-6 déc). Elles posent plusieurs questions : est-ce qu'on peut marcher jusqu'aux restaurants et à la plage ? Est-ce qu'il y a un frigo en chambre ? Quelles chambres sont disponibles ?</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200 max-h-80 overflow-y-auto">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Rebecca and Amanda,</em><br><br>
+              <em>Thank you so much for your interest in Le Martin Boutique Hotel! I'm delighted to help you plan your stay from December 3rd to 6th.</em><br><br>
+              <em>I have wonderful news — we do have availability for your dates, and I can offer you several excellent room options for two friends:</em><br><br>
+              <em><strong>Suite Marius</strong> (34 m²) — Our ground-floor suite with private entrance, adjacent to the pool. The bed can be configured as either a queen or two twin beds, perfect for your needs. It features a large terrace with garden view and a mini-fridge.</em><br><br>
+              <em><strong>Suite Marcelle</strong> (30 m²) — Beautiful ocean view with a large garden terrace. Queen bed with mini-fridge available.</em><br><br>
+              <em>Great news about walking! Our location in Cul de Sac is lovely and quiet. For restaurants within walking distance:</em><br>
+              <em>- Le Taitu (2 min walk) — Ethiopian-fusion cuisine</em><br>
+              <em>- Chez Hercule (2 min) — French bistro</em><br>
+              <em>- La Villa Hibiscus (3 min) — Caribbean fine dining</em><br><br>
+              <em>As for the beach — you'll love this — our private dock is literally 20 seconds from your room. Pinel Island is a quick boat ride away for pristine beaches and snorkeling.</em><br><br>
+              <em>And yes, every room has a mini-fridge!</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA DÉTAILLÉ -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA — étape par étape</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse du message :</strong> L'IA détecte 4 questions distinctes : (1) disponibilité des chambres, (2) restaurants à pied, (3) proximité plage, (4) frigo en chambre. Elle décide qu'il faut appeler plusieurs outils pour répondre à tout.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">check_room_availability</code> :</strong> L'IA appelle le PMS Thais avec les dates <code class="bg-white px-1 rounded">checkin: 2025-12-03, checkout: 2025-12-06</code>. Le PMS retourne la liste des chambres dispos avec les tarifs exacts.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>2ème appel <code class="bg-white px-1 rounded">check_room_availability</code> :</strong> L'IA vérifie une 2ème fois avec un filtre sur un type de chambre spécifique. <span class="text-amber-600 font-bold">C'est un double-check qu'on pourrait optimiser pour réduire le coût (voir section coûts).</span></span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 4</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">get_room_details</code> :</strong> L'IA récupère le détail de chaque chambre (taille, type de lit, vue, équipements) dans la base Supabase. C'est comme ça qu'elle sait que la Suite Marius peut être configurée en lits jumeaux et qu'il y a un mini-frigo.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 5</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">get_hotel_services</code> :</strong> L'IA vérifie les services de l'hôtel pour confirmer la présence du frigo. Elle récupère aussi les infos sur le pool, le petit-déj, etc.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 6</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">search_restaurants</code> :</strong> L'IA cherche dans les 66 restaurants de la base les restaurants à proximité de Cul de Sac. Elle filtre par distance et propose ceux qui sont à pied de l'hôtel.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 7</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">search_beaches</code> :</strong> L'IA cherche les plages proches dans la base de 22 plages. Elle mentionne le dock privé de l'hôtel et Pinel Island accessible en bateau.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 8</span>
+            <span class="text-stone-600"><strong>Rédaction finale :</strong> Avec toutes les données récupérées, l'IA construit une réponse complète qui répond à chaque question point par point. Elle personnalise en s'adressant aux deux amies par leur prénom.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🔧 Outils IA utilisés (6 appels)</div>
+        <div class="grid sm:grid-cols-3 gap-2 mb-4">
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-3"><div class="text-xs font-bold text-purple-800">check_room_availability ×2</div><div class="text-xs text-stone-500 mt-1">Vérifie les dispos et prix sur Thais PMS pour les dates du 3-6 déc</div></div>
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3"><div class="text-xs font-bold text-blue-800">get_room_details</div><div class="text-xs text-stone-500 mt-1">Récupère les détails chambres : taille, lits, vue, équipements</div></div>
+          <div class="bg-orange-50 border border-orange-200 rounded-lg p-3"><div class="text-xs font-bold text-orange-800">get_hotel_services</div><div class="text-xs text-stone-500 mt-1">Vérifie les services hôtel (frigo, pool, petit-déj)</div></div>
+          <div class="bg-pink-50 border border-pink-200 rounded-lg p-3"><div class="text-xs font-bold text-pink-800">search_restaurants</div><div class="text-xs text-stone-500 mt-1">Cherche dans 66 restos ceux accessibles à pied</div></div>
+          <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-3"><div class="text-xs font-bold text-cyan-800">search_beaches</div><div class="text-xs text-stone-500 mt-1">Cherche les plages à proximité de l'hôtel</div></div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.89</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,26 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">108s (1m48)</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Tokens</span><span class="font-mono">90 153 in / 877 out</span></div>
+      </div>
+      <div class="mx-8 mb-6 bg-neo-yellow/20 border-2 border-neo-yellow rounded-xl p-4 text-sm">
+        <strong>💡 Verdict :</strong> C'est la réponse la plus complète du test. L'IA a répondu aux 4 questions de Rebecca avec des infos vérifiées. Elle a proposé 2 suites adaptées (dont une avec lits jumeaux), listé les restos à pied avec les distances, mentionné le dock à 20 secondes, et confirmé le frigo. C'est exactement ce que Marion aurait fait — en 1 minute 48 au lieu de 15 minutes. <strong class="text-amber-700">Par contre, le double appel à check_room_availability est inutile et coûte des tokens. On peut optimiser ça.</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 10: EMAIL #3 — Anthony Marcket -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-purple-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-neo-purple border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">3</div>
+          <div>
+            <div class="font-black text-lg">Anthony Marcket</div>
+            <div class="text-sm text-stone-500 font-mono">acmarck1@hotmail.com</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-purple-200 text-purple-900 px-3 py-1 text-xs font-bold rounded-full">compliment</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">3 mars — 19h43</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Re: Anthony Marcket reservation June 15-17, 2026</div>
+            <div class="text-stone-600 text-sm leading-relaxed">Anthony répond pour confirmer qu'il a bien reçu la confirmation de réservation. Il mentionne que c'est pour son 23ème anniversaire de mariage. Aucune question, juste un message de remerciement.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Anthony,</em><br><br>
+              <em>Wonderful! I'm so happy to hear that you received the confirmation — that's exactly what we wanted to make sure of.</em><br><br>
+              <em>How exciting that you'll be celebrating your 23rd anniversary with us! What a special milestone, and we are absolutely thrilled that you've chosen Le Martin for this meaningful celebration. June is such a beautiful time to be on the island, and we'll make sure your stay is truly memorable.</em><br><br>
+              <em>We're already looking forward to welcoming you both in June and helping make your anniversary celebration unforgettable.</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse :</strong> L'IA détecte un simple message de remerciement/confirmation. Pas de question, pas de demande. Catégorie : <strong>compliment</strong>.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Personnalisation :</strong> L'IA repère l'occasion spéciale — <strong>23ème anniversaire de mariage</strong> — et décide de le mettre en avant dans la réponse pour montrer qu'on est attentif.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Décision outils :</strong> Aucun outil nécessaire. C'est un échange relationnel, pas transactionnel. L'IA écrit directement une réponse chaleureuse.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>6 secondes, 0,02 €</strong> — la réponse la moins chère et la plus rapide. L'IA a compris qu'il fallait juste être chaleureux et attentionné, sans surcharger d'infos.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.86</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,02 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">6s</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Outils</span><span class="text-stone-500">Aucun — simple remerciement relationnel</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 11: EMAIL #4 — Steve Martin -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-orange-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-neo-orange border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">4</div>
+          <div>
+            <div class="font-black text-lg">Steve Martin</div>
+            <div class="text-sm text-stone-500 font-mono">smartin@martintoutterrain.ca</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-orange-200 text-orange-900 px-3 py-1 text-xs font-bold rounded-full">restaurant</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇫🇷 FR</span>
+          <span class="font-mono text-sm text-stone-400">3 mars — 20h14</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Re: Info resto</div>
+            <div class="text-stone-600 text-sm leading-relaxed">Steve écrit en français. Il mentionne Villa Hibiscus, demande une réservation aux Galets pour le 16 mars à 19h30, et Maison Mère pour le 18 mars. Son séjour est du 16 au 19 mars.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Cher Steve,</em><br><br>
+              <em>Merci beaucoup pour votre message ! Je suis ravie de pouvoir vous aider avec vos réservations.</em><br><br>
+              <em>Concernant Villa Hibiscus, c'est effectivement une très belle adresse. C'est un choix tout à fait correct pour votre séjour du 17 mars.</em><br><br>
+              <em>Pour Les Galets le 16 mars à 19h30, c'est noté ! Je me charge de votre réservation et vous confirme les détails très prochainement. C'est notre coup de cœur absolu — vous allez adorer.</em><br><br>
+              <em>Maison Mère pour le 18 mars est également un excellent choix — une table contemporaine et créative qui saura vous surprendre.</em><br><br>
+              <em>Chaleureusement,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Détection de langue :</strong> L'email est en français. L'IA bascule automatiquement en mode français avec vouvoiement obligatoire ("Cher Steve", "votre message").</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">search_restaurants</code> :</strong> L'IA cherche Villa Hibiscus, Les Galets et Maison Mère dans la base de 66 restaurants pour récupérer les infos (type de cuisine, ambiance, recommandation Marion).</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Rédaction personnalisée :</strong> L'IA donne son avis sur chaque restaurant ("coup de cœur absolu" pour Les Galets) en se basant sur les notes de la base. Elle propose de s'occuper des réservations — c'est ce que Marion fait toujours.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>13 secondes, 0,06 €</strong> — réponse rapide et naturelle en français. Le vouvoiement est parfait, le ton est chaleureux sans être formel.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🔧 Outil utilisé</div>
+        <div class="inline-block bg-orange-50 border border-orange-200 rounded-lg p-3"><div class="text-xs font-bold text-orange-800">search_restaurants</div><div class="text-xs text-stone-500 mt-1">Recherche dans la base de 66 restaurants pour Villa Hibiscus, Les Galets, Maison Mère</div></div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.83</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,06 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">13s</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Langue</span><span class="neo-tag bg-blue-100 text-blue-800 px-2 py-0.5 text-xs font-bold rounded-md">FR — vouvoiement</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 12: EMAIL #5 — Ashley Allington -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-green-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-brand-600 border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">5</div>
+          <div>
+            <div class="font-black text-lg">Ashley Allington</div>
+            <div class="text-sm text-stone-500 font-mono">ashleyallington1@gmail.com</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-brand-200 text-brand-900 px-3 py-1 text-xs font-bold rounded-full">availability</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">3 mars — 20h46</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Re: Return guest rate</div>
+            <div class="text-stone-600 text-sm leading-relaxed">Ashley est une cliente qui est déjà venue. Elle veut revenir avec son mari du 18 au 23 mai et demande si la réduction de 15% pour les clients fidèles s'applique toujours.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Ashley,</em><br><br>
+              <em>How wonderful to hear from you again! I am absolutely delighted that you and your husband are planning to return to Le Martin Boutique Hotel for another stay with us.</em><br><br>
+              <em>I have excellent news for you — we do have availability for May 18th to 23rd, and your 15% returning guest discount will certainly apply to make your stay even more special.</em><br><br>
+              <em>I am currently checking the exact availability and pricing details for those dates and will send you a personalized quote with your returning guest rate very soon.</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Contexte client :</strong> L'IA reçoit le profil d'Ashley depuis la base : cliente existante, séjours passés > 0. Elle sait que c'est une <strong>returning guest</strong> et adapte le ton ("How wonderful to hear from you again!").</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">check_room_availability</code> :</strong> L'IA vérifie la disponibilité pour le 18-23 mai sur le PMS Thais. Le système retourne des chambres disponibles.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Gestion du prix :</strong> Le PMS retourne un tarif brut. L'IA sait qu'il faut appliquer le -15% returning guest, mais elle ne veut pas calculer un prix approximatif. Elle promet un <strong>"personalized quote"</strong> plutôt que d'inventer un chiffre. C'est exactement la bonne approche.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>13 secondes, 0,06 €</strong> — bonne réponse prudente. Elle confirme la dispo et le discount sans inventer de prix.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🔧 Outil utilisé</div>
+        <div class="inline-block bg-purple-50 border border-purple-200 rounded-lg p-3"><div class="text-xs font-bold text-purple-800">check_room_availability</div><div class="text-xs text-stone-500 mt-1">Vérifie dispo sur Thais PMS pour 18-23 mai 2026</div></div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.82</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,06 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">13s</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Outils</span><span class="neo-tag bg-purple-100 text-purple-800 px-2 py-0.5 text-xs font-bold rounded-md">check_room_availability</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 13: SÉPARATEUR JOUR 2 -->
+<!-- ============================================ -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal text-center">
+    <div class="inline-flex items-center gap-4 bg-black text-white px-8 py-4 rounded-2xl neo-btn">
+      <span class="text-2xl">📅</span>
+      <span class="font-black text-xl">4 Mars 2026 — Jour 2</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 14: EMAIL #6 — Susan McCormick -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-green-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-brand-500 border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">6</div>
+          <div><div class="font-black text-lg">Susan McCormick</div><div class="text-sm text-stone-500 font-mono">susannmccormick@hotmail.com</div></div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-brand-200 text-brand-900 px-3 py-1 text-xs font-bold rounded-full">availability</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">4 mars — 08h05</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Inquiry for stay in February 2027</div>
+            <div class="text-stone-600 text-sm">Susan voyage avec sa fille adulte. Elles cherchent une chambre avec 2 lits simples et vue mer pour février 2027 (12-17 fév). C'est une réservation très en avance (11 mois).</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Susan,</em><br><br>
+              <em>Thank you for your inquiry! What a lovely trip with your daughter — February is one of our most beautiful months here in Saint-Martin.</em><br><br>
+              <em>For two single beds, our Suite Marius (34 m²) would be ideal — the queen bed can be configured as two twin beds, with a private entrance and pool access.</em><br><br>
+              <em>For sea view options: Suite Marcelle (ocean view, 30 m²) and Suite Marthe (ocean view, 28 m²) are both wonderful choices.</em><br><br>
+              <em>February 2027 is still far ahead, so I'll prepare a detailed quote for you with the best options.</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse :</strong> Demande de dispo pour février 2027 — 11 mois à l'avance. L'IA détecte 2 critères : <strong>2 lits simples</strong> et <strong>vue mer</strong>.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Appel <code class="bg-white px-1 rounded">check_room_availability</code> :</strong> L'IA vérifie sur le PMS Thais. Les dispos 2027 ne sont peut-être pas encore ouvertes dans le PMS, mais l'IA a quand même les infos des chambres en base.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Matching intelligent :</strong> L'IA croise les critères (lits jumeaux + vue mer) avec sa connaissance des 6 chambres. Suite Marius = lits jumeaux possibles. Marcelle/Marthe = vue mer. Elle propose les 3 options les plus pertinentes.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>18 secondes, 0,10 €</strong> — bonne réponse qui oriente vers les bonnes chambres sans s'engager sur un prix aussi loin.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.82</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,10 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">18s</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 15: EMAIL #7 — Mischa -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-amber-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-amber-500 border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">7</div>
+          <div><div class="font-black text-lg">Mischa</div><div class="text-sm text-stone-500 font-mono">mischa@hollis-morris.com</div></div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-amber-200 text-amber-900 px-3 py-1 text-xs font-bold rounded-full">booking_modification</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">4 mars — 08h05</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : My stay March 11-13th</div>
+            <div class="text-stone-600 text-sm">Mischa a réservé via Expedia pour une famille de 4 (2 adultes + 2 enfants). La chambre réservée n'a qu'un seul lit queen, mais il leur faut 2 queen beds. Elle demande un changement de chambre.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear Mischa,</em><br><br>
+              <em>I completely understand your concern — having enough space for your family of four is so important!</em><br><br>
+              <em>I have excellent news! Our Family Suite (Marcelle & Pierre) would be absolutely perfect for you: 52 m² with two queen beds, two bathrooms, and two private terraces. The kids will love having their own space.</em><br><br>
+              <em>Since you booked through Expedia, I'll coordinate the room change on our end. You don't need to do anything — I'll make sure everything is updated and confirm the details with you directly.</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse :</strong> L'IA détecte une <strong>modification de réservation</strong> (catégorie booking_modification). Famille de 4 → besoin de 2 grands lits. Réservation via Expedia → coordination nécessaire avec le channel manager.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Matching chambres :</strong> L'IA connaît les 6 chambres de l'hôtel. Seule la <strong>Suite Familiale (Marcelle & Pierre)</strong> a 2 queen beds + 2 salles de bain. Elle propose directement la bonne option sans hésiter.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Gestion Expedia :</strong> L'IA sait que les réservations Expedia nécessitent une coordination avec la plateforme. Elle rassure la cliente : "je m'en occupe, vous n'avez rien à faire". C'est exactement le bon réflexe.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>35 secondes, 0,08 €</strong> — réponse précise qui propose la seule chambre adaptée et gère proactivement la coordination Expedia.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.84</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,08 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">35s</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 16: EMAIL #8 — LECK Concierge -->
+<!-- ============================================ -->
+<section class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="email-card bg-white rounded-3xl overflow-hidden">
+      <div class="bg-pink-50 px-8 py-5 flex flex-wrap items-center justify-between gap-4 border-b-3 border-black" style="border-bottom:3px solid #000;">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-neo-pink border-2 border-black rounded-xl flex items-center justify-center text-2xl font-black text-white">8</div>
+          <div><div class="font-black text-lg">LECK</div><div class="text-sm text-stone-500 font-mono">hnleck1212@gmail.com</div></div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="neo-tag bg-pink-200 text-pink-900 px-3 py-1 text-xs font-bold rounded-full">info_request</span>
+          <span class="neo-tag bg-white px-3 py-1 text-xs font-bold rounded-full">🇬🇧 EN</span>
+          <span class="font-mono text-sm text-stone-400">4 mars — 11h54</span>
+        </div>
+      </div>
+      <div class="p-8 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">📨 Email reçu</div>
+          <div class="bg-stone-50 rounded-xl p-5 border-2 border-stone-200">
+            <div class="font-bold mb-2 text-sm">Objet : Request for concierge services during my stay — LECK — March 25 to 28</div>
+            <div class="text-stone-600 text-sm">Email très complet : LECK demande des recommandations restaurants pour chaque soir, des activités nautiques, un transfert aéroport, les meilleures plages, et des conseils pratiques pour son séjour du 25 au 28 mars. C'est le type d'email qui prend le plus de temps à répondre manuellement.</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🤖 Réponse générée par l'IA</div>
+          <div class="bg-brand-50 rounded-xl p-5 border-2 border-brand-200 max-h-80 overflow-y-auto">
+            <div class="text-sm leading-relaxed text-stone-700">
+              <em>"Dear LECK,</em><br><br>
+              <em>How exciting that your trip to Saint-Martin is coming up! I'd love to help you plan an unforgettable stay. Here are my personal recommendations:</em><br><br>
+              <em><strong>Restaurants:</strong></em><br>
+              <em>- Night 1: Les Galets (Grand Case) — our absolute favorite, Mediterranean-French with feet in the sand</em><br>
+              <em>- Night 2: La Villa Hibiscus (Cul de Sac) — 3 min walk from the hotel, Caribbean fine dining</em><br>
+              <em>- Night 3: Maison Mère (Grand Case) — contemporary creative cuisine</em><br><br>
+              <em><strong>Activities:</strong></em><br>
+              <em>- Pinel Island boat trip — pristine beach, snorkeling, lunch spots</em><br>
+              <em>- Sunset catamaran cruise</em><br>
+              <em>- Kayak/paddleboard at the hotel dock</em><br><br>
+              <em><strong>Transport:</strong> Private airport transfer arranged, ~15 min drive.</em><br><br>
+              <em>Warmly,<br>Marion<br>Le Martin Boutique Hotel"</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RAISONNEMENT IA -->
+      <div class="px-8 pb-4">
+        <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">🧠 Raisonnement de l'IA</div>
+        <div class="bg-indigo-50 rounded-xl p-5 border-2 border-indigo-200 text-sm space-y-3">
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 1</span>
+            <span class="text-stone-600"><strong>Analyse :</strong> L'IA détecte un email <strong>multi-catégories</strong> (restaurants + activités + transport + infos pratiques). Elle décide d'appeler plusieurs outils pour construire une réponse complète.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 2</span>
+            <span class="text-stone-600"><strong>Appels outils multiples :</strong> L'IA appelle <code class="bg-white px-1 rounded">search_restaurants</code>, <code class="bg-white px-1 rounded">search_beaches</code>, <code class="bg-white px-1 rounded">search_activities</code>, et <code class="bg-white px-1 rounded">get_hotel_services</code> pour récupérer toutes les infos nécessaires depuis la base de données.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Étape 3</span>
+            <span class="text-stone-600"><strong>Construction d'itinéraire :</strong> Avec toutes les données, l'IA construit un mini-programme jour par jour : 1 restaurant par soir, des activités variées, et le transfert aéroport. Elle organise tout de manière logique.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-indigo-500 font-bold shrink-0">Résultat</span>
+            <span class="text-stone-600"><strong>56 secondes, 0,18 €</strong> — le 2ème email le plus cher du test. Ce type de réponse concierge complète prend normalement 20-30 minutes à Marion. L'IA l'a fait en moins d'une minute.</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-8 pb-6 flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Confiance</span><span class="neo-tag bg-brand-200 text-brand-800 px-2 py-0.5 font-bold rounded-md">0.89</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Coût</span><span class="font-mono">0,18 €</span></div>
+        <div class="flex items-center gap-2"><span class="font-bold text-stone-400">Temps</span><span class="font-mono">56s</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 17-18: ERREURS IA -->
+<!-- ============================================ -->
+<section class="py-20 bg-neo-red/5" id="erreurs">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-neo-red border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">⚠️</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Emails où l'IA n'aurait pas dû répondre</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Deux cas où l'IA a généré une réponse alors qu'elle n'aurait pas dû. C'est normal en phase de test — ces expéditeurs sont maintenant ajoutés à la liste noire pour ne plus jamais être traités.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="neo-card bg-white rounded-2xl p-8 border-neo-red" style="border-color:#f87171;">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">ERREUR</span>
+          <span class="font-bold">Email #9 — Tablet Hotels</span>
+        </div>
+        <div class="text-sm text-stone-500 font-mono mb-3">newsletter@email.tablethotels.com</div>
+        <div class="text-sm mb-4"><strong>Objet :</strong> 7 New Hotels</div>
+        <div class="bg-red-50 rounded-xl p-4 text-sm mb-4">
+          <strong>Problème :</strong> C'est une newsletter automatique de Tablet Hotels (plateforme de réservation hôtelière). L'IA a cru que c'était un client et a répondu poliment pour remercier de la sélection. Elle n'aurait <strong>jamais dû répondre</strong> à une newsletter.
+        </div>
+        <div class="bg-stone-50 rounded-xl p-4 text-sm mb-4">
+          <strong>🧠 Pourquoi l'IA s'est trompée :</strong> L'email ne vient pas d'un @lemartinhotel.com ni d'un noreply — donc il passe les filtres. L'IA n'a pas de moyen de savoir que c'est une newsletter commerciale.
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm mb-4">
+          <strong>✅ Correction appliquée :</strong> <code class="bg-white px-1 rounded text-xs">newsletter@email.tablethotels.com</code> ajouté à la liste des expéditeurs ignorés.
+        </div>
+        <div class="text-xs text-stone-400">Coût gaspillé : 0,02 € | Confiance : 0.84</div>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8 border-neo-red" style="border-color:#f87171;">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">ERREUR</span>
+          <span class="font-bold">Email #10 — Voyages de Rêve</span>
+        </div>
+        <div class="text-sm text-stone-500 font-mono mb-3">voyagesdereve@vipmedias.com</div>
+        <div class="text-sm mb-4"><strong>Objet :</strong> Best Hôtels Guide 2026 / Hors Série / Antilles</div>
+        <div class="bg-red-50 rounded-xl p-4 text-sm mb-4">
+          <strong>Problème :</strong> Proposition commerciale presse — un magazine qui veut que l'hôtel paie pour figurer dans leur guide "Best Hôtels". L'IA a répondu et redirigé vers Emmanuel. C'est du démarchage, elle n'aurait pas dû répondre du tout.
+        </div>
+        <div class="bg-stone-50 rounded-xl p-4 text-sm mb-4">
+          <strong>🧠 Pourquoi l'IA s'est trompée :</strong> L'email ressemble à un email professionnel légitime. L'IA a détecté que c'est hors de ses compétences (out_of_scope) et a escaladé — techniquement pas faux, mais il vaut mieux ignorer ce type de démarchage.
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm mb-4">
+          <strong>✅ Correction appliquée :</strong> Le domaine <code class="bg-white px-1 rounded text-xs">@vipmedias.com</code> ajouté à la liste noire.
+        </div>
+        <div class="text-xs text-stone-400">Coût gaspillé : 0,03 € | Confiance : 0.84</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 19: ESCALATIONS HEADER -->
+<!-- ============================================ -->
+<section class="py-20" id="escalations">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-neo-orange border-2 border-black rounded-lg flex items-center justify-center text-2xl">🚨</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Escalations — Ce qui a été remonté</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Quand l'IA détecte un sujet sensible (plainte, paiement, annulation), elle ne répond pas et remonte à Emmanuel. Voici tous les cas :</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 20: TABLEAU ESCALATIONS -->
+<!-- ============================================ -->
+<section class="pb-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="neo-card bg-white rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-stone-100 border-b-3 border-black" style="border-bottom:3px solid #000;">
+              <th class="text-left px-6 py-4 font-black">#</th>
+              <th class="text-left px-6 py-4 font-black">Expéditeur</th>
+              <th class="text-left px-6 py-4 font-black">Objet</th>
+              <th class="text-left px-6 py-4 font-black">Raison</th>
+              <th class="text-left px-6 py-4 font-black">Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-stone-200 hover:bg-red-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">1</td>
+              <td class="px-6 py-4"><div class="font-bold">Egor Gizatullin</div><div class="text-xs text-stone-400 font-mono">gizaegor@gmail.com</div></td>
+              <td class="px-6 py-4">Re: Dinner Reservation</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-red-100 text-red-800 px-2 py-0.5 text-xs font-bold rounded-md">complaint</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-neo-red/20 text-neo-red px-2 py-0.5 text-xs font-bold rounded-md">❌ FAUX POSITIF</span><div class="text-xs text-stone-400 mt-1">Il dit juste "8 pm please!" — le thread contient d'anciens mots</div></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-red-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">2</td>
+              <td class="px-6 py-4"><div class="font-bold">Instant Floral</div><div class="text-xs text-stone-400 font-mono">instant.floral@yahoo.com</div></td>
+              <td class="px-6 py-4">Numéro 18 commande du 14/0</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold rounded-md">payment_issue</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-neo-red/20 text-neo-red px-2 py-0.5 text-xs font-bold rounded-md">❌ FAUX POSITIF</span><div class="text-xs text-stone-400 mt-1">Fleuriste fournisseur, pas un client</div></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-green-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">3</td>
+              <td class="px-6 py-4"><div class="font-bold">Mr & Mrs Smith</div><div class="text-xs text-stone-400 font-mono">collections@MrandMrsSmith.com</div></td>
+              <td class="px-6 py-4">Sales Invoice</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold rounded-md">payment_issue</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 text-xs font-bold rounded-md">✅ CORRECT</span></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-green-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">4</td>
+              <td class="px-6 py-4"><div class="font-bold">Payline</div><div class="text-xs text-stone-400 font-mono">justificatif-de-paiement@payline.com</div></td>
+              <td class="px-6 py-4">Payment of the order</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold rounded-md">payment_issue</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 text-xs font-bold rounded-md">✅ CORRECT</span></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-red-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">5</td>
+              <td class="px-6 py-4"><div class="font-bold">Assistance 97</div><div class="text-xs text-stone-400 font-mono">slinet@assistance97.fr</div></td>
+              <td class="px-6 py-4">Iban Assistance 97</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-purple-100 text-purple-800 px-2 py-0.5 text-xs font-bold rounded-md">privatization</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-neo-red/20 text-neo-red px-2 py-0.5 text-xs font-bold rounded-md">❌ FAUX POSITIF</span><div class="text-xs text-stone-400 mt-1">Prestataire technique, pas un client</div></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-green-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">6</td>
+              <td class="px-6 py-4"><div class="font-bold">TripAdvisor</div><div class="text-xs text-stone-400 font-mono">bestpractices@hm2.tripadvisor.com</div></td>
+              <td class="px-6 py-4">Rapport performances février</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-stone-100 text-stone-800 px-2 py-0.5 text-xs font-bold rounded-md">out_of_scope</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 text-xs font-bold rounded-md">✅ CORRECT</span></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-green-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">7</td>
+              <td class="px-6 py-4"><div class="font-bold">BRED Banque</div><div class="text-xs text-stone-400 font-mono">relation_clients@em.bred.fr</div></td>
+              <td class="px-6 py-4">Valorisez votre entreprise...</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-stone-100 text-stone-800 px-2 py-0.5 text-xs font-bold rounded-md">out_of_scope</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-brand-100 text-brand-800 px-2 py-0.5 text-xs font-bold rounded-md">✅ CORRECT</span></td>
+            </tr>
+            <tr class="border-b border-stone-200 hover:bg-amber-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">8</td>
+              <td class="px-6 py-4"><div class="font-bold">CaribTours</div><div class="text-xs text-stone-400 font-mono">Bookings@caribtours.co.uk</div></td>
+              <td class="px-6 py-4">URGENT: booking LMH6986</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-red-100 text-red-800 px-2 py-0.5 text-xs font-bold rounded-md">complaint</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-neo-yellow px-2 py-0.5 text-xs font-bold rounded-md">🔍 À VÉRIFIER</span><div class="text-xs text-stone-400 mt-1">Tour-opérateur — probablement légitime</div></td>
+            </tr>
+            <tr class="hover:bg-amber-50 transition-colors">
+              <td class="px-6 py-4 font-mono font-bold">9</td>
+              <td class="px-6 py-4"><div class="font-bold">CaribTours (Ewelina)</div><div class="text-xs text-stone-400 font-mono">Ewelina.French@caribtours.co.uk</div></td>
+              <td class="px-6 py-4">URGENT: booking LMH6986</td>
+              <td class="px-6 py-4"><span class="neo-tag bg-red-100 text-red-800 px-2 py-0.5 text-xs font-bold rounded-md">complaint</span></td>
+              <td class="px-6 py-4"><span class="neo-tag bg-neo-yellow px-2 py-0.5 text-xs font-bold rounded-md">🔍 À VÉRIFIER</span><div class="text-xs text-stone-400 mt-1">Même booking, 2ème contact</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-6 grid sm:grid-cols-3 gap-4">
+      <div class="neo-card bg-brand-50 p-4 rounded-xl text-center">
+        <div class="text-2xl font-black text-brand-600">5</div>
+        <div class="text-sm text-stone-500">Escalations correctes</div>
+      </div>
+      <div class="neo-card bg-red-50 p-4 rounded-xl text-center">
+        <div class="text-2xl font-black text-neo-red">3</div>
+        <div class="text-sm text-stone-500">Faux positifs</div>
+      </div>
+      <div class="neo-card bg-amber-50 p-4 rounded-xl text-center">
+        <div class="text-2xl font-black text-amber-600">2</div>
+        <div class="text-sm text-stone-500">À vérifier</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 21: EMAILS FILTRÉS AUTO -->
+<!-- ============================================ -->
+<section class="py-20 bg-stone-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-stone-500 border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">🗑️</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Emails filtrés automatiquement</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Ces emails ont été ignorés automatiquement (emails internes, noreply, factures). L'IA ne les a même pas vus.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">reservation@lemartinhotel.com</div><div class="text-xs text-stone-400 mt-1">Dinner Reservation — <span class="text-brand-600">Email interne</span></div></div>
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">reservation@lemartinhotel.com</div><div class="text-xs text-stone-400 mt-1">Transfer Information — <span class="text-brand-600">Email interne</span></div></div>
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">reservation@lemartinhotel.com</div><div class="text-xs text-stone-400 mt-1">Couples Massage Confirmation — <span class="text-brand-600">Email interne</span></div></div>
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">reservation@lemartinhotel.com</div><div class="text-xs text-stone-400 mt-1">Food Issues — <span class="text-brand-600">Email interne</span></div></div>
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">no-reply@app.siteminder.com</div><div class="text-xs text-stone-400 mt-1">Expedia Booking — <span class="text-brand-600">Noreply filtré</span></div></div>
+      <div class="bg-white rounded-xl p-5 border-2 border-stone-200"><div class="font-bold text-sm">conciergerie@lemartinhotel.com</div><div class="text-xs text-stone-400 mt-1">Linda's Dining Reservations — <span class="text-brand-600">Email interne</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 22: ANALYSE DES COÛTS -->
+<!-- ============================================ -->
+<section class="py-20" id="couts">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-lime border-2 border-black rounded-lg flex items-center justify-center text-2xl">💰</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Analyse des coûts</h2>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <h3 class="font-black text-xl mb-6">Coût par email</h3>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between"><span class="text-sm">Rebecca (6 outils, 108s)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:100%"></div></div><span class="font-mono text-sm font-bold">0,26 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">LECK (concierge complet)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:69%"></div></div><span class="font-mono text-sm font-bold">0,18 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">Susan (disponibilité)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:38%"></div></div><span class="font-mono text-sm font-bold">0,10 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">Mischa (famille)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:31%"></div></div><span class="font-mono text-sm font-bold">0,08 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">Steve (restos)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:23%"></div></div><span class="font-mono text-sm font-bold">0,06 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">Ashley (retour client)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:23%"></div></div><span class="font-mono text-sm font-bold">0,06 €</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-sm">Tyler (simple)</span><div class="flex items-center gap-2"><div class="w-32 bg-stone-100 rounded-full h-3"><div class="bg-brand-500 h-3 rounded-full" style="width:8%"></div></div><span class="font-mono text-sm font-bold">0,02 €</span></div></div>
+        </div>
+      </div>
+      <div class="neo-card bg-black text-white rounded-2xl p-8">
+        <h3 class="font-black text-xl mb-6">Projection mensuelle</h3>
+        <div class="space-y-6">
+          <div>
+            <div class="text-stone-400 text-sm mb-1">Coût moyen par email traité</div>
+            <div class="text-4xl font-black text-brand-400">0,08 €</div>
+          </div>
+          <div>
+            <div class="text-stone-400 text-sm mb-1">Estimation réaliste (~10-15 emails/jour)</div>
+            <div class="text-4xl font-black text-neo-yellow">~30-35 €/mois</div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4 text-sm text-stone-300">
+            <strong class="text-white">Pourquoi ce prix ?</strong> On utilise <strong class="text-neo-cyan">Claude Sonnet 4</strong>, le dernier modèle d'Anthropic — c'est le plus performant mais aussi le plus cher. C'est ce qui permet la qualité des réponses qu'on vient de voir.
+          </div>
+          <div class="bg-white/10 rounded-xl p-4 text-sm text-stone-300 border border-amber-500/30">
+            <strong class="text-neo-yellow">Option pour baisser :</strong> On pourrait passer à GPT-4o mini (OpenAI) qui coûte ~5x moins cher, mais la qualité des réponses risque de baisser — surtout sur le français, le ton personnalisé, et les réponses complexes type concierge. À tester avant de décider.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 22b: OPTIMISATION DES COÛTS -->
+<!-- ============================================ -->
+<section class="py-20 bg-amber-50 border-t-3 border-black" style="border-top: 3px solid #000;">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-amber-500 border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">⚡</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Comment réduire le coût de l'IA</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Le coût actuel (~0,08 €/email) est déjà très bas, mais on peut encore l'optimiser. Voici comment :</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">🔄</span>
+          <h3 class="font-black text-lg">Supprimer les doubles vérifications</h3>
+        </div>
+        <p class="text-sm text-stone-500 mb-4">Actuellement, l'IA appelle parfois <code class="bg-stone-100 px-1 rounded text-xs">check_room_availability</code> <strong>2 fois</strong> pour le même email (ex : Rebecca — 2 appels). Le 2ème appel filtre par type de chambre, mais c'est souvent redondant car les infos sont déjà dans le 1er résultat.</p>
+        <div class="bg-amber-100 rounded-lg p-3 text-sm">
+          <strong>Économie estimée :</strong> -30% de tokens sur les emails complexes = <strong class="text-amber-800">~0,05 €/email au lieu de 0,08 €</strong>
+        </div>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">💾</span>
+          <h3 class="font-black text-lg">Mettre en cache les données statiques</h3>
+        </div>
+        <p class="text-sm text-stone-500 mb-4">Les détails des chambres, la liste des restaurants, les plages — ces données ne changent quasiment jamais. Au lieu de les re-chercher à chaque email, on peut les garder en mémoire et les injecter directement dans le prompt.</p>
+        <div class="bg-amber-100 rounded-lg p-3 text-sm">
+          <strong>Économie estimée :</strong> -1 à 3 appels d'outils par email = <strong class="text-amber-800">réponses plus rapides + moins de tokens</strong>
+        </div>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">📏</span>
+          <h3 class="font-black text-lg">Optimiser le prompt système</h3>
+        </div>
+        <p class="text-sm text-stone-500 mb-4">Le prompt système actuel fait ~2000 tokens. Il inclut toutes les règles, le contexte client, et l'historique de conversation. On peut le compresser en gardant l'essentiel — chaque token en moins dans le prompt = économie sur <strong>chaque email</strong>.</p>
+        <div class="bg-amber-100 rounded-lg p-3 text-sm">
+          <strong>Économie estimée :</strong> -20% de tokens d'entrée = <strong class="text-amber-800">~0,01-0,02 € économisés par email</strong>
+        </div>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">🎯</span>
+          <h3 class="font-black text-lg">Changer de modèle IA ?</h3>
+        </div>
+        <p class="text-sm text-stone-500 mb-4">On utilise actuellement <strong>Claude Sonnet 4</strong> (Anthropic) — le top en qualité. On pourrait passer à <strong>GPT-4o mini</strong> (OpenAI, ~5x moins cher) ou <strong>Claude Haiku</strong> (Anthropic, ~10x moins cher), mais avec un risque sur la qualité du français, le ton, et les réponses complexes.</p>
+        <div class="bg-red-100 rounded-lg p-3 text-sm">
+          <strong>Risque :</strong> Les modèles moins chers sont <strong class="text-red-800">moins bons en français</strong> et risquent de perdre le ton "Marion". À tester avant de décider.
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 neo-card bg-black text-white rounded-2xl p-8">
+      <div class="flex items-center gap-4 justify-between flex-wrap">
+        <div>
+          <div class="text-stone-400 text-sm mb-1">Coût actuel avec Claude Sonnet 4</div>
+          <div class="text-3xl font-black text-neo-orange">~30-35 €/mois</div>
+        </div>
+        <div class="text-4xl">→</div>
+        <div>
+          <div class="text-stone-400 text-sm mb-1">Avec optimisations (sans changer de modèle)</div>
+          <div class="text-3xl font-black text-brand-400">~15-20 €/mois</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-4 text-sm text-stone-300 max-w-xs">
+          💡 Rien qu'en supprimant les doubles vérifications et en mettant en cache les données statiques, on peut diviser le coût par 2 sans toucher à la qualité.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 22c: OUTILS DISPONIBLES -->
+<!-- ============================================ -->
+<section class="py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-neo-purple border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">🧰</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Les 12 outils de l'IA</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">L'IA a accès à 12 outils qui lui permettent de chercher des informations en temps réel dans nos bases de données. Elle décide toute seule quels outils appeler selon la question du client :</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-sm">1</span><span class="font-bold text-sm">check_room_availability</span></div><div class="text-xs text-stone-500">Vérifie les dispos et prix en temps réel sur le PMS Thais. <strong>Obligatoire</strong> avant de donner un prix.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-sm">2</span><span class="font-bold text-sm">get_room_details</span></div><div class="text-xs text-stone-500">Détails des 6 chambres : taille, vue, lit, équipements, design.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-sm">3</span><span class="font-bold text-sm">search_restaurants</span></div><div class="text-xs text-stone-500">Cherche dans les 66 restaurants par zone, cuisine, occasion.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-sm">4</span><span class="font-bold text-sm">search_beaches</span></div><div class="text-xs text-stone-500">Guide des 22 plages de l'île par côté et activité.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-sm">5</span><span class="font-bold text-sm">search_activities</span></div><div class="text-xs text-stone-500">41 activités et excursions par catégorie.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-sm">6</span><span class="font-bold text-sm">get_hotel_services</span></div><div class="text-xs text-stone-500">36 services hôtel avec prix (wellness, transport, dining).</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-sm">7</span><span class="font-bold text-sm">search_faq</span></div><div class="text-xs text-stone-500">15 questions fréquentes par catégorie.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-sm">8</span><span class="font-bold text-sm">get_transport_schedules</span></div><div class="text-xs text-stone-500">Horaires ferry et navettes entre les îles.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-sm">9</span><span class="font-bold text-sm">get_partner_info</span></div><div class="text-xs text-stone-500">Infos sur les partenaires de confiance (location voiture, excursions).</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center text-sm">10</span><span class="font-bold text-sm">get_client_history</span></div><div class="text-xs text-stone-500">Profil client, préférences, séjours passés pour personnaliser.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-lime-100 rounded-lg flex items-center justify-center text-sm">11</span><span class="font-bold text-sm">get_email_template</span></div><div class="text-xs text-stone-500">Templates d'emails de Marion pour s'inspirer du ton.</div></div>
+      <div class="neo-card bg-white rounded-xl p-5"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-sm">12</span><span class="font-bold text-sm">get_practical_info</span></div><div class="text-xs text-stone-500">Infos pratiques : urgences, hôpitaux, aéroport, banques, météo.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 23: CONFIANCE -->
+<!-- ============================================ -->
+<section class="py-20 bg-white border-t-3 border-black" style="border-top: 3px solid #000;">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-cyan border-2 border-black rounded-lg flex items-center justify-center text-2xl">📊</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Score de confiance — Comment l'IA s'auto-évalue</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Chaque réponse reçoit un score entre 0 et 1. Si le score est en dessous de <strong class="text-stone-700">0.70</strong>, l'IA ne répond pas et escalade à Emmanuel. Voici les résultats :</p>
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div class="neo-card bg-brand-50 rounded-xl p-5 text-center"><div class="text-2xl font-black text-brand-600">0.89</div><div class="text-xs text-stone-500 mt-1">Rebecca</div><div class="text-xs text-stone-400">LECK</div></div>
+      <div class="neo-card bg-brand-50 rounded-xl p-5 text-center"><div class="text-2xl font-black text-brand-600">0.86</div><div class="text-xs text-stone-500 mt-1">Anthony</div></div>
+      <div class="neo-card bg-brand-50 rounded-xl p-5 text-center"><div class="text-2xl font-black text-brand-600">0.84</div><div class="text-xs text-stone-500 mt-1">Mischa</div><div class="text-xs text-stone-400">Tablet · Voyages</div></div>
+      <div class="neo-card bg-brand-50 rounded-xl p-5 text-center"><div class="text-2xl font-black text-brand-600">0.83</div><div class="text-xs text-stone-500 mt-1">Tyler · Steve</div></div>
+      <div class="neo-card bg-brand-50 rounded-xl p-5 text-center"><div class="text-2xl font-black text-brand-600">0.82</div><div class="text-xs text-stone-500 mt-1">Ashley · Susan</div></div>
+    </div>
+    <div class="mt-8 neo-card bg-brand-50 rounded-2xl p-6">
+      <div class="flex items-center gap-4 justify-center">
+        <span class="text-4xl font-black text-brand-600">0,85</span>
+        <span class="text-lg text-stone-500">de moyenne — toutes les réponses sont <strong class="text-stone-700">au-dessus du seuil de 0.70</strong></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 24: TEMPS DE RÉPONSE -->
+<!-- ============================================ -->
+<section class="py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-pink border-2 border-black rounded-lg flex items-center justify-center text-2xl">⏱️</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Temps de réponse</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-10">Le temps que l'IA met pour analyser l'email, chercher les infos dans la base, et rédiger la réponse :</p>
+    <div class="neo-card bg-white rounded-2xl p-8">
+      <div class="space-y-4">
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Anthony</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-brand-400 h-8 rounded-full flex items-center justify-end pr-3" style="width:6%"><span class="text-xs font-bold text-white">6s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Tyler</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-brand-400 h-8 rounded-full flex items-center justify-end pr-3" style="width:7%"><span class="text-xs font-bold text-white">7s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Steve</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-brand-500 h-8 rounded-full flex items-center justify-end pr-3" style="width:12%"><span class="text-xs font-bold text-white">13s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Ashley</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-brand-500 h-8 rounded-full flex items-center justify-end pr-3" style="width:12%"><span class="text-xs font-bold text-white">13s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Susan</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-brand-500 h-8 rounded-full flex items-center justify-end pr-3" style="width:17%"><span class="text-xs font-bold text-white">18s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Mischa</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-neo-orange h-8 rounded-full flex items-center justify-end pr-3" style="width:32%"><span class="text-xs font-bold text-white">35s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">LECK</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-neo-orange h-8 rounded-full flex items-center justify-end pr-3" style="width:52%"><span class="text-xs font-bold text-white">56s</span></div></div></div>
+        <div class="flex items-center gap-4"><span class="w-28 text-sm font-bold">Rebecca</span><div class="flex-1 bg-stone-100 rounded-full h-8 relative"><div class="bg-neo-red h-8 rounded-full flex items-center justify-end pr-3" style="width:100%"><span class="text-xs font-bold text-white">108s</span></div></div></div>
+      </div>
+      <div class="mt-6 text-sm text-stone-500">
+        💡 Les réponses simples (compliment, confirmation) prennent <strong>6-7 secondes</strong> car l'IA n'a pas besoin de chercher d'infos. Les réponses complexes (dispo + restos + plages) prennent <strong>jusqu'à 2 minutes</strong> car l'IA fait plusieurs appels d'outils séquentiels (chaque appel = une requête à la base de données). En production, un délai artificiel de 5-7 minutes sera ajouté pour que les réponses paraissent humaines — pas naturel de répondre en 6 secondes à 22h.
+      </div>
+      <div class="mt-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 text-sm">
+        <strong>🧠 Pourquoi Rebecca prend 108 secondes ?</strong> C'est le seul email qui a déclenché <strong>6 appels d'outils</strong> séquentiels. Chaque appel nécessite un aller-retour avec Claude (envoyer le résultat de l'outil, attendre la décision suivante). C'est aussi l'email le plus coûteux (0,26 €) à cause du volume de tokens échangés. Avec les optimisations (cache, moins de double-checks), on pourrait descendre à ~40 secondes.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 25-26: CORRECTIONS APPLIQUÉES -->
+<!-- ============================================ -->
+<section class="py-20 bg-brand-500 text-white" id="corrections">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm font-bold mb-6">
+        <span>🔧</span> Déjà corrigé
+      </div>
+      <h2 class="text-4xl sm:text-5xl font-black">Corrections déjà appliquées</h2>
+      <p class="text-xl text-white/70 mt-4 max-w-2xl mx-auto">Suite aux résultats du test, j'ai déjà corrigé 3 problèmes majeurs dans le code :</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white/10 backdrop-blur rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-colors">
+        <div class="text-3xl mb-4">🌸</div>
+        <h3 class="font-black text-xl mb-3">Filtrage fournisseurs</h3>
+        <p class="text-white/70 text-sm leading-relaxed mb-4">Le fleuriste, Assistance 97, TripAdvisor, et les autres prestataires sont maintenant <strong class="text-white">ignorés automatiquement</strong>. Plus jamais traités comme des clients.</p>
+        <div class="font-mono text-xs bg-black/30 rounded-lg p-3 text-white/60">
+          instant.floral@yahoo.com → skip<br>
+          slinet@assistance97.fr → skip<br>
+          @tripadvisor.com → skip<br>
+          @mrandmrssmith.com → skip
+        </div>
+      </div>
+      <div class="bg-white/10 backdrop-blur rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-colors">
+        <div class="text-3xl mb-4">✂️</div>
+        <h3 class="font-black text-xl mb-3">Thread stripping intelligent</h3>
+        <p class="text-white/70 text-sm leading-relaxed mb-4">L'escalation ne regarde plus que le <strong class="text-white">dernier message</strong> de l'email (plus le thread complet). Ça élimine les faux positifs comme Egor.</p>
+        <div class="font-mono text-xs bg-black/30 rounded-lg p-3 text-white/60">
+          IA → voit tout le thread (contexte)<br>
+          Escalation → dernier message uniquement
+        </div>
+      </div>
+      <div class="bg-white/10 backdrop-blur rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-colors">
+        <div class="text-3xl mb-4">📚</div>
+        <h3 class="font-black text-xl mb-3">Nouvelles infos en base</h3>
+        <p class="text-white/70 text-sm leading-relaxed mb-4">Ajouté dans la base de connaissances : <strong class="text-white">pas de Uber</strong> sur l'île (taxis et loueurs uniquement) + <strong class="text-white">Delifood Island SXM</strong> pour la livraison de repas.</p>
+        <div class="font-mono text-xs bg-black/30 rounded-lg p-3 text-white/60">
+          transport → "Pas de Uber / VTC"<br>
+          dining → "Delifood Island SXM"
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 27: PROCHAINES ÉTAPES -->
+<!-- ============================================ -->
+<section class="py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-purple border-2 border-black rounded-lg flex items-center justify-center text-2xl">🚀</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Prochaines étapes</h2>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-black text-sm">1</span>
+          <h3 class="font-black text-lg">Valider avec Emmanuel</h3>
+        </div>
+        <p class="text-stone-500 text-sm">Vérifier que les réponses générées correspondent à ce que Marion aurait écrit. Ajuster le ton, les infos, les recommandations si besoin.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-black text-sm">2</span>
+          <h3 class="font-black text-lg">Mode brouillon</h3>
+        </div>
+        <p class="text-stone-500 text-sm">Passer en mode « draft » : l'IA crée les réponses en brouillon dans Outlook. Emmanuel les vérifie et envoie manuellement.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 bg-neo-orange rounded-lg flex items-center justify-center text-white font-black text-sm">3</span>
+          <h3 class="font-black text-lg">Ajouter les fournisseurs manquants</h3>
+        </div>
+        <p class="text-stone-500 text-sm">Compléter la liste des prestataires à ignorer : newsletter@email.tablethotels.com, @vipmedias.com, @em.bred.fr, etc.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 bg-neo-orange rounded-lg flex items-center justify-center text-white font-black text-sm">4</span>
+          <h3 class="font-black text-lg">Décider pour CaribTours</h3>
+        </div>
+        <p class="text-stone-500 text-sm">CaribTours est un tour-opérateur partenaire. Est-ce que l'IA doit répondre à leurs emails ou toujours escalader à Emmanuel ?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 28: RÉSUMÉ VISUEL -->
+<!-- ============================================ -->
+<section class="py-20 bg-stone-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-neo-yellow border-2 border-black rounded-lg flex items-center justify-center text-2xl">🎯</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Résumé en un coup d'œil</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">📩</div><div class="text-2xl font-black">24</div><div class="text-xs text-stone-500">emails reçus</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">🤖</div><div class="text-2xl font-black">10</div><div class="text-xs text-stone-500">réponses IA</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">🎯</div><div class="text-2xl font-black">80%</div><div class="text-xs text-stone-500">réponses pertinentes</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">💰</div><div class="text-2xl font-black">0,83€</div><div class="text-xs text-stone-500">coût total</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">⏱️</div><div class="text-2xl font-black">29s</div><div class="text-xs text-stone-500">temps moyen</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">📊</div><div class="text-2xl font-black">0,85</div><div class="text-xs text-stone-500">confiance moy.</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">🔧</div><div class="text-2xl font-black">3</div><div class="text-xs text-stone-500">corrections faites</div></div>
+      <div class="neo-card bg-white rounded-xl p-6 text-center"><div class="text-4xl mb-2">📤</div><div class="text-2xl font-black">0</div><div class="text-xs text-stone-500">emails envoyés</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 29: QUALITÉ DES RÉPONSES -->
+<!-- ============================================ -->
+<section class="py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-12 h-12 bg-brand-500 border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">✨</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Ce que l'IA fait bien</h2>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">🇫🇷🇬🇧</div>
+        <h3 class="font-bold mb-2">Détection de langue</h3>
+        <p class="text-sm text-stone-500">Répond en français avec vouvoiement quand l'email est en français, en anglais chaleureux sinon. 100% correct sur les 10 emails.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">🏠</div>
+        <h3 class="font-bold mb-2">Connaissance des chambres</h3>
+        <p class="text-sm text-stone-500">Propose la bonne chambre selon le profil : Suite Familiale pour Mischa (4 pers.), Suite Marius en lits jumeaux pour Rebecca et Susan.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">🍽️</div>
+        <h3 class="font-bold mb-2">Recommandations restos</h3>
+        <p class="text-sm text-stone-500">Cherche dans la base de 66 restaurants, donne les distances à pied, l'ambiance, et propose de réserver.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">💕</div>
+        <h3 class="font-bold mb-2">Ton personnalisé</h3>
+        <p class="text-sm text-stone-500">Détecte les occasions spéciales (anniversaire d'Anthony) et personnalise la réponse. Jamais robotique.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">💰</div>
+        <h3 class="font-bold mb-2">Pas d'invention de prix</h3>
+        <p class="text-sm text-stone-500">Quand l'IA n'a pas le prix exact, elle dit « je vérifie et reviens vers vous ». Jamais de prix inventé.</p>
+      </div>
+      <div class="neo-card bg-white rounded-2xl p-6">
+        <div class="text-2xl mb-3">🔒</div>
+        <h3 class="font-bold mb-2">Escalation prudente</h3>
+        <p class="text-sm text-stone-500">Quand elle n'est pas sûre ou que c'est sensible, elle escalade plutôt que de risquer une mauvaise réponse.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 30: FOOTER -->
+<!-- ============================================ -->
+<section class="py-20 bg-black text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center section-reveal">
+    <div class="text-6xl mb-6">🏝️</div>
+    <h2 class="text-3xl sm:text-4xl font-black mb-4">Prêt pour la suite, Emmanuel ?</h2>
+    <p class="text-xl text-stone-400 max-w-2xl mx-auto mb-10">
+      Dis-moi si les réponses te conviennent, si tu veux ajuster le ton, ou si tu as des questions. On peut passer en mode brouillon dès que tu es à l'aise.
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <div class="neo-btn bg-brand-500 px-8 py-4 rounded-xl font-bold text-lg">✅ C'est validé, on passe en brouillon</div>
+      <div class="neo-btn bg-white text-black px-8 py-4 rounded-xl font-bold text-lg">💬 J'ai des ajustements</div>
+    </div>
+    <div class="mt-16 pt-8 border-t border-white/10 text-sm text-stone-500">
+      <p>Rapport généré automatiquement — IA Concierge v1.0 — Le Martin Boutique Hotel</p>
+      <p class="mt-1">Propulsé par Claude Sonnet 4 (Anthropic) · Données réelles du 3-4 mars 2026</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SCRIPTS: Animations, interactions, easter eggs -->
+<!-- ============================================ -->
+<script>
+// Intersection Observer for section reveals
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.section-reveal').forEach(el => observer.observe(el));
+
+// Counter animation for stat numbers
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.getAttribute('data-count'));
+      if (!target) return;
+      let current = 0;
+      const increment = Math.ceil(target / 30);
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = current;
+      }, 30);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+// Easter egg: Konami code
+let konamiSequence = [];
+const konamiCode = [38,38,40,40,37,39,37,39,66,65];
+document.addEventListener('keydown', (e) => {
+  konamiSequence.push(e.keyCode);
+  if (konamiSequence.length > 10) konamiSequence.shift();
+  if (JSON.stringify(konamiSequence) === JSON.stringify(konamiCode)) {
+    document.body.style.transition = 'transform 1s ease';
+    document.body.style.transform = 'rotate(360deg)';
+    setTimeout(() => { document.body.style.transform = 'rotate(0deg)'; }, 1000);
+    createConfetti();
+  }
+});
+
+// Easter egg: Click the M logo 5 times
+let mClicks = 0;
+document.querySelector('nav .neo-btn')?.addEventListener('click', () => {
+  mClicks++;
+  if (mClicks === 5) {
+    mClicks = 0;
+    createConfetti();
+  }
+});
+
+// Confetti function
+function createConfetti() {
+  const colors = ['#facc15', '#f472b6', '#60a5fa', '#fb923c', '#a3e635', '#c084fc'];
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.cssText = `
+      position:fixed; top:-10px; left:${Math.random()*100}vw;
+      width:${8+Math.random()*8}px; height:${8+Math.random()*8}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      z-index:9999; pointer-events:none;
+    `;
+    document.body.appendChild(confetti);
+    const duration = 2000 + Math.random() * 2000;
+    confetti.animate([
+      { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+      { transform: `translateY(100vh) rotate(${360+Math.random()*720}deg)`, opacity: 0 }
+    ], { duration, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }).onfinish = () => confetti.remove();
+  }
+}
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// Easter egg: Double-click any email card to wiggle
+document.querySelectorAll('.email-card').forEach(card => {
+  card.addEventListener('dblclick', () => {
+    card.style.animation = 'wiggle 0.5s ease-in-out';
+    setTimeout(() => { card.style.animation = ''; }, 500);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email — Emmanuel Schmitt — Facture d'acompte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f5f5f5; }
+    @media print {
+      body { background: #fff; }
+      .no-print { display: none !important; }
+      .email-card { box-shadow: none !important; border: none !important; }
+    }
+    .copy-toast {
+      position: fixed; top: 20px; right: 20px; background: #000; color: #fff;
+      padding: 12px 24px; font-size: 13px; font-weight: 500; z-index: 999;
+      transform: translateY(-20px); opacity: 0;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none; font-family: 'Inter', sans-serif;
+    }
+    .copy-toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+
+  <div id="toast" class="copy-toast no-print">Contenu copi&eacute; dans le presse-papiers</div>
+
+  <!-- Action bar -->
+  <div class="max-w-2xl mx-auto mb-6 no-print">
+    <div class="flex items-center justify-between">
+      <p class="text-xs text-gray-400">Aper&ccedil;u de l'email &mdash; Copier le contenu puis coller dans Outlook / Gmail</p>
+      <div class="flex gap-2">
+        <button onclick="copyEmail()" class="flex items-center gap-2 bg-black text-white text-xs font-semibold px-5 py-2.5 hover:bg-gray-800 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+          Copier le texte
+        </button>
+        <button onclick="window.print()" class="flex items-center gap-2 bg-white border border-gray-200 text-black text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email card -->
+  <div class="max-w-2xl mx-auto">
+    <div class="email-card bg-white shadow-[0_2px_40px_rgba(0,0,0,0.06)] border border-gray-100">
+
+      <!-- Email header -->
+      <div class="border-b border-gray-100 px-8 py-5">
+        <div class="space-y-2.5">
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] text-gray-400 font-medium w-8">&Agrave;</span>
+            <span class="text-[13px] text-black font-medium">Emmanuel Schmitt</span>
+            <span class="text-[12px] text-gray-400">&lt;emmanuel@lemartinhotel.com&gt;</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] text-gray-400 font-medium w-8">De</span>
+            <span class="text-[13px] text-black font-medium">Baptiste Fort</span>
+            <span class="text-[12px] text-gray-400">&lt;baptiste@visionia.fr&gt;</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] text-gray-400 font-medium w-8">Objet</span>
+            <span class="text-[13px] text-black font-semibold">Facture d'acompte FA-2026-001 &mdash; Solution IA Le Martin Hotel</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email body -->
+      <div class="px-8 py-8" id="email-body">
+        <div class="space-y-5 text-[14px] text-gray-800 leading-relaxed">
+
+          <p>Bonjour Emmanuel,</p>
+
+          <p>J'esp&egrave;re que vous allez bien et que la saison se pr&eacute;pare sereinement c&ocirc;t&eacute; Saint-Martin.</p>
+
+          <p>Suite &agrave; nos &eacute;changes et &agrave; la validation de la proposition, je vous transmets en pi&egrave;ce jointe la <strong>facture d'acompte FA-2026-001</strong> correspondant &agrave; 30&nbsp;% du projet de solution IA pour le traitement automatis&eacute; de vos emails.</p>
+
+          <!-- Recap box -->
+          <div class="bg-gray-50 border border-gray-200 p-5 my-6">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-3">R&eacute;capitulatif</p>
+            <div class="space-y-2">
+              <div class="flex justify-between text-[13px]">
+                <span class="text-gray-500">Montant total du projet</span>
+                <span class="font-semibold text-black font-mono">2&nbsp;800,00 &euro; HT</span>
+              </div>
+              <div class="flex justify-between text-[13px]">
+                <span class="text-gray-500">Acompte 30&nbsp;%</span>
+                <span class="font-bold text-black font-mono">840,00 &euro;</span>
+              </div>
+              <div class="flex justify-between text-[13px]">
+                <span class="text-gray-500">Solde &agrave; la livraison</span>
+                <span class="text-gray-500 font-mono">1&nbsp;960,00 &euro;</span>
+              </div>
+            </div>
+          </div>
+
+          <p>Pour rappel, la solution comprend&nbsp;:</p>
+
+          <ul class="list-disc pl-5 space-y-1 text-[13.5px] text-gray-700">
+            <li>L'audit et la conception du syst&egrave;me IA personnalis&eacute; Le Martin</li>
+            <li>Le d&eacute;veloppement de l'application Python sur mesure avec int&eacute;gration &agrave; votre PMS Tha&iuml;s</li>
+            <li>Le moteur d'intelligence artificielle Claude (Anthropic) pour la r&eacute;daction des r&eacute;ponses</li>
+            <li>L'h&eacute;bergement sur serveur Hostinger</li>
+            <li>La phase de tests, le d&eacute;ploiement et la formation de votre &eacute;quipe</li>
+            <li>30 jours de support post-d&eacute;ploiement <strong>offerts</strong></li>
+          </ul>
+
+          <!-- Bank details box -->
+          <div class="bg-black text-white p-5 my-6">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/50 font-bold mb-3">Coordonn&eacute;es bancaires pour le virement</p>
+            <div class="space-y-1.5 text-[13px]">
+              <div class="flex gap-4">
+                <span class="text-white/50 w-16">Titulaire</span>
+                <span class="font-semibold">BAPTISTE FORT</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="text-white/50 w-16">Banque</span>
+                <span class="font-semibold">CR&Eacute;DIT MUTUEL</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="text-white/50 w-16">IBAN</span>
+                <span class="font-mono font-semibold tracking-wider">FR76 1027 8060 2000 0200 0750 590</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="text-white/50 w-16">BIC</span>
+                <span class="font-mono font-semibold tracking-wider">CMCIFR2A</span>
+              </div>
+            </div>
+          </div>
+
+          <p>Le paiement est attendu par virement bancaire &agrave; r&eacute;ception de la facture. D&egrave;s r&eacute;ception de l'acompte, nous lan&ccedil;ons imm&eacute;diatement la phase d'audit et de conception &mdash; vous serez op&eacute;rationnel sous deux semaines.</p>
+
+          <p>N'h&eacute;sitez pas si vous avez la moindre question.</p>
+
+          <p>Tr&egrave;s bonne journ&eacute;e &agrave; vous,</p>
+
+          <!-- Signature -->
+          <div class="border-t border-gray-200 pt-5 mt-6">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-black flex items-center justify-center flex-shrink-0">
+                <span class="text-white font-bold text-sm">V</span>
+              </div>
+              <div class="space-y-0.5">
+                <p class="text-[14px] font-bold text-black">Baptiste Fort</p>
+                <p class="text-[12px] text-gray-500">Fondateur &mdash; VisionIA</p>
+                <p class="text-[12px] text-gray-400 mt-1">1 Rue du Roi Dagobert, 94130 Nogent-sur-Marne</p>
+                <p class="text-[12px] text-gray-400">SIRET&nbsp;: 909 392 474 00021</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Attachment preview -->
+      <div class="border-t border-gray-100 px-8 py-4">
+        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-3">Pi&egrave;ce jointe</p>
+        <div class="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 transition-all cursor-default">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          <div>
+            <p class="text-[12px] font-semibold text-black">FA-2026-001_Acompte_LeMartin.pdf</p>
+            <p class="text-[10px] text-gray-400">Facture d'acompte 30&nbsp;% &mdash; 840,00 &euro;</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom hint -->
+  <p class="text-center text-[10px] text-gray-400 mt-6 mb-12 no-print">Cliquez sur &laquo;&nbsp;Copier le texte&nbsp;&raquo; pour coller directement dans votre messagerie</p>
+
+  <script>
+    function copyEmail() {
+      const body = document.getElementById('email-body');
+
+      // Create a range and select the email body content
+      const range = document.createRange();
+      range.selectNodeContents(body);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // Copy
+      document.execCommand('copy');
+      selection.removeAllRanges();
+
+      // Toast
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>
