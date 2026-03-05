@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     poll_interval: int = 60
     default_language: str = "fr"
     supported_languages: str = "fr,en"
-    email_signature_name: str = "Marion"
+    email_signature_name: str = "Marion & Emmanuel"
     email_signature_role: str = "Réception"
     max_emails_per_cycle: int = 10
     log_level: str = "info"

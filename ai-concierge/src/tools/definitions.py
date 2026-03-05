@@ -34,14 +34,18 @@ TOOLS: list[dict] = [
         "name": "get_room_details",
         "description": (
             "Get detailed information about a specific room or all rooms: "
-            "size, view, amenities, bed type, accessibility, design style."
+            "size, view, amenities, bed type, accessibility, design style, "
+            "public_category_fr/en (the name to use with guests — NEVER use internal room names like 'Suite Marius'). "
+            "Also includes bed_twinable (always false — beds are NOT separable), "
+            "extra_bed_price (115€/night for extra single bed), "
+            "and child_supplement (150€/night per child)."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "room_slug": {
                     "type": "string",
-                    "description": "Room slug (e.g. 'rene', 'marius', 'marcelle', 'pierre', 'edouard', 'jeanne'). "
+                    "description": "Room slug (e.g. 'rene', 'marius', 'marcelle', 'pierre', 'marthe', 'georgette', 'family-suite'). "
                                    "Omit to get all rooms.",
                 },
             },

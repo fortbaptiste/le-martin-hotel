@@ -19,8 +19,13 @@ class Room(BaseModel):
     slug: str
     name: str
     category: str
+    public_category_fr: str | None = None
+    public_category_en: str | None = None
     size_m2: int
     bed_type: str = "Queen"
+    bed_twinable: bool = False
+    extra_bed_price: float | None = 115.00
+    child_supplement: float | None = 150.00
     view_fr: str | None = None
     view_en: str | None = None
     floor: str | None = None

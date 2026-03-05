@@ -91,6 +91,7 @@ tailwind.config = {
       <a href="#escalations" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Escalations</a>
       <a href="#couts" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Coûts</a>
       <a href="#corrections" class="px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors">Corrections</a>
+      <a href="#audit" class="px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors font-bold">Audit V2</a>
     </div>
     <div class="flex items-center gap-2">
       <div class="relative draft-badge">
@@ -1482,18 +1483,243 @@ tailwind.config = {
 </section>
 
 <!-- ============================================ -->
-<!-- SECTION 30: FOOTER -->
+<!-- SECTION 30: CORRECTIONS V2 — RETOURS EMMANUEL & MARION -->
+<!-- ============================================ -->
+<section class="py-20 bg-red-50 border-t-3 border-black" style="border-top: 3px solid #000;" id="audit">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 bg-neo-red border-2 border-black rounded-lg flex items-center justify-center text-2xl text-white">🔍</div>
+      <h2 class="text-3xl sm:text-4xl font-black">Audit V2 — Retours d'Emmanuel & Marion</h2>
+    </div>
+    <p class="text-lg text-stone-500 max-w-3xl mb-4">Emmanuel et Marion ont comparé les réponses de l'IA avec les vraies réponses de Marion. Voici chaque erreur identifiée et la correction appliquée.</p>
+    <div class="neo-tag bg-neo-red/20 text-neo-red px-4 py-2 text-sm font-bold rounded-full inline-block mb-10">8 corrections critiques appliquées le 5 mars 2026</div>
+
+    <!-- ERREUR 1: Noms de chambres -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #f87171;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">CRITIQUE</span>
+        <span class="font-black text-lg">Noms de chambres vs Catégories publiques</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "Suite Marius (34 m²)", "Suite Marcelle (30 m²)", "Suite René"...<br>
+          <span class="text-red-600 font-bold">Les clients ne connaissent PAS ces noms internes.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion dit :</strong><br>
+          "Suite vue jardin avec grande terrasse (RDC)", "Suite Deluxe vue mer (étage)", "Chambre Privilège vue jardin (étage)"...<br>
+          <span class="text-brand-600 font-bold">Toujours des catégories descriptives.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Ajout du champ <code class="bg-white px-1 rounded border">public_category_fr/en</code> dans la base de données. Instruction dans le prompt : "JAMAIS de noms internes, utilise les catégories publiques". Le mapping complet est codé en dur dans le prompt système.
+      </div>
+    </div>
+
+    <!-- ERREUR 2: Lits non séparables -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #f87171;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">CRITIQUE</span>
+        <span class="font-black text-lg">Lits non séparables en twin</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "The queen bed can be configured as two twin beds"<br>
+          <span class="text-red-600 font-bold">FAUX. Les lits ne se séparent PAS.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion dit :</strong><br>
+          "The beds are not twinable but we can add a single bed for 115 €/night"<br>
+          <span class="text-brand-600 font-bold">Honnête + solution alternative avec prix.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Champ <code class="bg-white px-1 rounded border">bed_twinable = false</code> ajouté à toutes les chambres. Prix lit d'appoint (115 €/nuit) et supplément enfant (150 €/nuit) codés dans la base. Descriptions mises à jour : "Queen (non séparable)".
+      </div>
+    </div>
+
+    <!-- ERREUR 3: Disponibilité non vérifiée -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #f87171;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">CRITIQUE</span>
+        <span class="font-black text-lg">Chambre proposée sans vérifier la dispo (Mischa)</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "I have excellent news! Our Family Suite would be perfect for you"<br>
+          <span class="text-red-600 font-bold">L'hôtel était COMPLET pour ces dates. La suite familiale n'était PAS disponible.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion a dit :</strong><br>
+          "We are unable to move you to a different room type as we are fully booked. However, we can add 2 single beds (reduced comfort). Child supplement: 150 €/night."<br>
+          <span class="text-brand-600 font-bold">Honnête sur la situation + solution réaliste.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Instruction absolue dans le prompt : "Tu dois TOUJOURS appeler check_room_availability AVANT de proposer une chambre. Si l'hôtel est complet, DIS-LE CLAIREMENT."
+      </div>
+    </div>
+
+    <!-- ERREUR 4: Vue mer ignorée (Susan) -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #f87171;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-red/20 text-neo-red px-3 py-1 text-xs font-bold rounded-full">CRITIQUE</span>
+        <span class="font-black text-lg">Mauvaise chambre proposée — vue jardin au lieu de vue mer (Susan)</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "Suite Marius (34 m²) would be ideal — queen bed as two twin beds, ground floor, pool access"<br>
+          <span class="text-red-600 font-bold">Susan demandait VUE MER. Marius = vue jardin, RDC. Tout faux.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion a dit :</strong><br>
+          "Deluxe Sea View Suite" + lien de réservation + 2 tarifs (Flexible / Advance Purchase)<br>
+          <span class="text-brand-600 font-bold">Bonne catégorie + infos de réservation complètes.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Combinaison de plusieurs fixes : catégories publiques (pas de noms), vérification de dispo obligatoire, et les règles sur les lits non séparables évitent de proposer Marius pour les twin beds.
+      </div>
+    </div>
+
+    <!-- ERREUR 5: Restaurants à pied -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #fb923c;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-orange/20 text-neo-orange px-3 py-1 text-xs font-bold rounded-full">IMPORTANT</span>
+        <span class="font-black text-lg">Restaurants à pied — FAUX</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "Le Taitu (2 min walk), Chez Hercule (2 min), La Villa Hibiscus (3 min)"<br>
+          <span class="text-red-600 font-bold">FAUX. Aucun restaurant n'est accessible à pied depuis Cul de Sac.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion dit :</strong><br>
+          "The restaurants are 5-10 minutes by car."<br>
+          <span class="text-brand-600 font-bold">Info réaliste sur la localisation.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Règle absolue dans le prompt : "L'hôtel est situé à Cul de Sac. Il n'y a AUCUN restaurant accessible à pied. Les restaurants sont à 5-10 minutes en voiture."
+      </div>
+    </div>
+
+    <!-- ERREUR 6: Lien réservation + tarifs manquants -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #fb923c;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-orange/20 text-neo-orange px-3 py-1 text-xs font-bold rounded-full">IMPORTANT</span>
+        <span class="font-black text-lg">Lien de réservation et types de tarifs manquants</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          Aucun lien de réservation, aucune info sur les tarifs.<br>
+          <span class="text-red-600 font-bold">Le client ne sait pas comment réserver.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion dit :</strong><br>
+          Lien direct + "Best Flexible Rate" (remboursable selon délai) + "Advance Purchase Rate" (10% de réduction, non remboursable)<br>
+          <span class="text-brand-600 font-bold">Infos complètes pour que le client puisse réserver.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Le lien <code class="bg-white px-1 rounded border text-xs">https://lemartinhotel.thais-hotel.com/direct-booking/calendar</code> est maintenant obligatoire dans chaque réponse de disponibilité. Les 2 types de tarifs et la politique d'annulation sont dans le prompt.
+      </div>
+    </div>
+
+    <!-- ERREUR 7: Minibar ≠ Frigo -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #facc15;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-yellow/40 text-amber-800 px-3 py-1 text-xs font-bold rounded-full">MOYEN</span>
+        <span class="font-black text-lg">Minibar ≠ Réfrigérateur</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA disait :</strong><br>
+          "Every room has a mini-fridge!"<br>
+          <span class="text-red-600 font-bold">Laisse croire qu'on peut y stocker de la nourriture.</span>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion dit :</strong><br>
+          "We have a minibar (not a fridge for personal food). We offer snacks, charcuterie boards, etc."<br>
+          <span class="text-brand-600 font-bold">Précision + alternative.</span>
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> Amenities mis à jour : "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)". Règle dans le prompt pour proposer les snacks/charcuterie.
+      </div>
+    </div>
+
+    <!-- ERREUR 8: Signature -->
+    <div class="neo-card bg-white rounded-2xl p-8 mb-6" style="border-color: #facc15;">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="neo-tag bg-neo-yellow/40 text-amber-800 px-3 py-1 text-xs font-bold rounded-full">MOYEN</span>
+        <span class="font-black text-lg">Signature incorrecte</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4 mb-4">
+        <div class="bg-red-50 rounded-xl p-4 text-sm">
+          <strong class="text-red-800">L'IA signait :</strong> "Warmly, Marion"
+        </div>
+        <div class="bg-brand-50 rounded-xl p-4 text-sm">
+          <strong class="text-brand-800">Marion signe :</strong> "Warmly, Marion & Emmanuel"
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded-xl p-4 text-sm">
+        <strong>Correction :</strong> <code class="bg-white px-1 rounded border text-xs">email_signature_name</code> changé de "Marion" à "Marion & Emmanuel" dans la config.
+      </div>
+    </div>
+
+    <!-- RÉSUMÉ DES FICHIERS MODIFIÉS -->
+    <div class="neo-card bg-black text-white rounded-2xl p-8 mt-8">
+      <h3 class="font-black text-xl mb-6">Fichiers modifiés</h3>
+      <div class="grid md:grid-cols-2 gap-4 font-mono text-sm">
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">config.py</div>
+          <div class="text-stone-400">Signature "Marion & Emmanuel"</div>
+        </div>
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">system.py</div>
+          <div class="text-stone-400">+6 blocs de règles absolues (chambres, lits, dispo, restos, réservation, localisation)</div>
+        </div>
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">002_seed_rooms.sql</div>
+          <div class="text-stone-400">public_category_fr/en, bed_twinable, extra_bed_price, child_supplement, minibar description</div>
+        </div>
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">001_schema.sql</div>
+          <div class="text-stone-400">+5 colonnes : public_category_fr/en, bed_twinable, extra_bed_price, child_supplement</div>
+        </div>
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">knowledge.py</div>
+          <div class="text-stone-400">Room model mis à jour avec les nouveaux champs</div>
+        </div>
+        <div class="bg-white/10 rounded-lg p-4">
+          <div class="text-brand-400 font-bold mb-2">definitions.py</div>
+          <div class="text-stone-400">get_room_details : description enrichie (catégories, lits, prix)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 31: FOOTER -->
 <!-- ============================================ -->
 <section class="py-20 bg-black text-white">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center section-reveal">
     <div class="text-6xl mb-6">🏝️</div>
-    <h2 class="text-3xl sm:text-4xl font-black mb-4">Prêt pour la suite, Emmanuel ?</h2>
+    <h2 class="text-3xl sm:text-4xl font-black mb-4">Corrections appliquées, Emmanuel.</h2>
     <p class="text-xl text-stone-400 max-w-2xl mx-auto mb-10">
-      Dis-moi si les réponses te conviennent, si tu veux ajuster le ton, ou si tu as des questions. On peut passer en mode brouillon dès que tu es à l'aise.
+      Les 8 erreurs identifiées grâce à tes retours et ceux de Marion ont été corrigées dans le code. On peut relancer un test pour valider que tout fonctionne correctement.
     </p>
     <div class="flex flex-wrap gap-4 justify-center">
-      <div class="neo-btn bg-brand-500 px-8 py-4 rounded-xl font-bold text-lg">✅ C'est validé, on passe en brouillon</div>
-      <div class="neo-btn bg-white text-black px-8 py-4 rounded-xl font-bold text-lg">💬 J'ai des ajustements</div>
+      <div class="neo-btn bg-brand-500 px-8 py-4 rounded-xl font-bold text-lg">✅ On relance un test</div>
+      <div class="neo-btn bg-white text-black px-8 py-4 rounded-xl font-bold text-lg">💬 J'ai d'autres ajustements</div>
     </div>
     <div class="mt-16 pt-8 border-t border-white/10 text-sm text-stone-500">
       <p>Rapport généré automatiquement — IA Concierge v1.0 — Le Martin Boutique Hotel</p>
