@@ -61,6 +61,9 @@ class Restaurant(BaseModel):
     ambiance: str | None = None
     distance_km: float | None = None
     driving_time_min: int | None = None
+    walkable: bool = False
+    access_note_fr: str | None = None
+    access_note_en: str | None = None
     best_for: list[str] = []
     description_fr: str | None = None
     description_en: str | None = None

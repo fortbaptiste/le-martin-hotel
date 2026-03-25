@@ -225,14 +225,14 @@ L'IA mentionne d'abord les activités gratuites de l'hôtel (kayak, paddle, snor
 
 Les prestataires avec qui l'hôtel travaille régulièrement :
 
-- **name** : le nom (Escale Mail, Bubble Shop, Scoobi Too, etc.)
+- **name** : le nom (Escale Car Rental, Bubble Shop, Scoobi Too, etc.)
 - **service_type** : car_rental, snorkeling, gym, boat_tour, excursion, ferry
 - **contact_name / contact_email / contact_phone** : les coordonnées
 - **forward_template_fr / forward_template_en** : les modèles d'emails pour mettre en relation le client et le partenaire
 - **pricing_info** : les infos tarifaires
 - **notes** : des notes internes
 
-Par exemple, quand un client demande une location de voiture, l'IA sait qu'il faut contacter **Escale Mail** (Sébastien & Eve) et utilise le template email pour les mettre en relation.
+Par exemple, quand un client demande une location de voiture, l'IA sait qu'il faut contacter **Escale Car Rental** (Sébastien & Eve) et utilise le template email pour les mettre en relation.
 
 ---
 

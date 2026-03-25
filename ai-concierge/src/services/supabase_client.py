@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import structlog
@@ -10,6 +11,27 @@ from supabase import create_client, Client
 from src.config import settings
 
 log = structlog.get_logger()
+
+# ---------------------------------------------------------------------------
+# In-memory TTL cache for quasi-static data (rooms, restaurants, rules …)
+# ---------------------------------------------------------------------------
+
+_cache: dict[str, tuple[float, Any]] = {}
+_CACHE_TTL = 300  # 5 minutes
+
+
+def _get_cached(key: str) -> Any | None:
+    """Return cached value if still valid, else None."""
+    if key in _cache:
+        ts, value = _cache[key]
+        if time.monotonic() - ts < _CACHE_TTL:
+            return value
+    return None
+
+
+def _set_cache(key: str, value: Any) -> None:
+    """Store value in cache with current timestamp."""
+    _cache[key] = (time.monotonic(), value)
 
 # ---------------------------------------------------------------------------
 # Singleton client
@@ -139,9 +161,14 @@ async def create_escalation(data: dict[str, Any]) -> dict:
 # ---------------------------------------------------------------------------
 
 async def get_active_rules() -> list[dict]:
+    cached = _get_cached("active_rules")
+    if cached is not None:
+        return cached
     q = _table("ai_rules").select("*").eq("is_active", True).order("priority", desc=True)
     resp = q.execute()
-    return resp.data or []
+    result = resp.data or []
+    _set_cache("active_rules", result)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -162,8 +189,14 @@ async def get_daily_summary(date_str: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 async def get_rooms(active_only: bool = True) -> list[dict]:
+    cache_key = f"rooms:{active_only}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters = {"is_active": True} if active_only else None
-    return await _select("rooms", filters=filters, order="sort_order")
+    result = await _select("rooms", filters=filters, order="sort_order")
+    _set_cache(cache_key, result)
+    return result
 
 
 async def get_room_by_slug(slug: str) -> dict | None:
@@ -172,10 +205,16 @@ async def get_room_by_slug(slug: str) -> dict | None:
 
 
 async def get_hotel_services(category: str | None = None) -> list[dict]:
+    cache_key = f"hotel_services:{category}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters: dict[str, Any] = {"is_active": True}
     if category:
         filters["category"] = category
-    return await _select("hotel_services", filters=filters, order="sort_order")
+    result = await _select("hotel_services", filters=filters, order="sort_order")
+    _set_cache(cache_key, result)
+    return result
 
 
 async def search_restaurants(
@@ -183,6 +222,10 @@ async def search_restaurants(
     cuisine: str | None = None,
     is_partner: bool | None = None,
 ) -> list[dict]:
+    cache_key = f"restaurants:{area}:{cuisine}:{is_partner}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     q = _table("restaurants").select("*")
     if area:
         q = q.ilike("area", f"%{area}%")
@@ -192,21 +235,35 @@ async def search_restaurants(
         q = q.eq("is_partner", is_partner)
     q = q.order("sort_order")
     resp = q.execute()
-    return resp.data or []
+    result = resp.data or []
+    _set_cache(cache_key, result)
+    return result
 
 
 async def search_beaches(side: str | None = None) -> list[dict]:
+    cache_key = f"beaches:{side}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters: dict[str, Any] = {}
     if side:
         filters["side"] = side
-    return await _select("beaches", filters=filters if filters else None, order="sort_order")
+    result = await _select("beaches", filters=filters if filters else None, order="sort_order")
+    _set_cache(cache_key, result)
+    return result
 
 
 async def search_activities(category: str | None = None) -> list[dict]:
+    cache_key = f"activities:{category}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters: dict[str, Any] = {}
     if category:
         filters["category"] = category
-    return await _select("activities", filters=filters if filters else None, order="sort_order")
+    result = await _select("activities", filters=filters if filters else None, order="sort_order")
+    _set_cache(cache_key, result)
+    return result
 
 
 async def get_faq(category: str | None = None) -> list[dict]:
@@ -224,10 +281,16 @@ async def get_practical_info(category: str | None = None) -> list[dict]:
 
 
 async def get_partners(service_type: str | None = None) -> list[dict]:
+    cache_key = f"partners:{service_type}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters: dict[str, Any] = {"is_active": True}
     if service_type:
         filters["service_type"] = service_type
-    return await _select("partners", filters=filters)
+    result = await _select("partners", filters=filters)
+    _set_cache(cache_key, result)
+    return result
 
 
 async def get_transport_schedules(route: str | None = None) -> list[dict]:
@@ -247,10 +310,16 @@ async def get_email_templates(category: str | None = None, language: str | None 
 
 
 async def get_email_examples(category: str | None = None) -> list[dict]:
+    cache_key = f"email_examples:{category}"
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
     filters: dict[str, Any] = {}
     if category:
         filters["category"] = category
-    return await _select("email_examples", filters=filters)
+    result = await _select("email_examples", filters=filters)
+    _set_cache(cache_key, result)
+    return result
 
 
 # ---------------------------------------------------------------------------

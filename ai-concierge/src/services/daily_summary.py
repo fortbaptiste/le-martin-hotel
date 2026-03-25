@@ -37,7 +37,18 @@ async def generate_and_send_summary(target_date: date | None = None) -> dict:
         "sent_to_owner": True,
     })
 
-    # OBSERVATION MODE: log summary locally, do NOT send email to Emmanuel
+    # Send summary email to Emmanuel
+    try:
+        summary_html = _build_summary_html(today, stats, escalation_count)
+        await outlook.send_email(
+            to=settings.notify_email,
+            subject=f"Résumé IA — {today.strftime('%d/%m/%Y')}",
+            body_html=summary_html,
+        )
+        log.info("daily_summary.sent", date=date_str, to=settings.notify_email)
+    except Exception as exc:
+        log.error("daily_summary.send_failed", error=str(exc))
+
     log.info("daily_summary.generated", date=date_str, summary=summary_text)
     return {
         "date": date_str,

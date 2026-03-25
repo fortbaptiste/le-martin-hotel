@@ -21,7 +21,6 @@ CREATE TYPE message_direction AS ENUM ('inbound', 'outbound');
 CREATE TYPE reservation_status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed', 'no_show');
 CREATE TYPE rate_type AS ENUM ('advance_purchase', 'flexible', 'honeymoon', 'non_refundable', 'other');
 CREATE TYPE escalation_reason AS ENUM ('low_confidence', 'complaint', 'refund_request', 'booking_modification', 'group_request', 'privatization', 'payment_issue', 'out_of_scope', 'unknown_question', 'physical_action_required', 'other');
-CREATE TYPE correction_type AS ENUM ('tone', 'factual', 'missing_info', 'wrong_info', 'grammar', 'policy', 'other');
 CREATE TYPE rule_type AS ENUM ('response', 'escalation', 'tone', 'availability', 'pricing', 'routing', 'greeting', 'signature');
 CREATE TYPE app_mode AS ENUM ('draft', 'auto');
 CREATE TYPE room_category AS ENUM ('prestige', 'deluxe', 'family_suite');
@@ -172,27 +171,7 @@ CREATE INDEX idx_escalations_created ON escalations(created_at DESC);
 
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
---  6. AI_CORRECTIONS — Apprentissage continu
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CREATE TABLE ai_corrections (
-    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    message_id          UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    original_draft      TEXT NOT NULL,
-    corrected_text      TEXT NOT NULL,
-    correction          correction_type DEFAULT 'other',
-    correction_note     TEXT,
-    corrected_by        TEXT DEFAULT 'Marion',
-    created_at          TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_corrections_message ON ai_corrections(message_id);
-CREATE INDEX idx_corrections_type ON ai_corrections(correction);
-CREATE INDEX idx_corrections_created ON ai_corrections(created_at DESC);
-
-
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
---  7. AI_RULES — Règles métier de l'IA
+--  6. AI_RULES — Règles métier de l'IA
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CREATE TABLE ai_rules (
@@ -312,6 +291,9 @@ CREATE TABLE restaurants (
     ambiance            TEXT,
     distance_km         DECIMAL(4,1),
     driving_time_min    INT,
+    walkable            BOOLEAN DEFAULT FALSE,
+    access_note_fr      TEXT,
+    access_note_en      TEXT,
     best_for            TEXT[] DEFAULT '{}',
     description_fr      TEXT,
     description_en      TEXT,
@@ -471,7 +453,6 @@ ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE escalations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_corrections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_summaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
@@ -488,7 +469,6 @@ CREATE POLICY "Service role full access" ON conversations FOR ALL USING (true) W
 CREATE POLICY "Service role full access" ON messages FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON reservations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON escalations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON ai_corrections FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON ai_rules FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON daily_summaries FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON rooms FOR ALL USING (true) WITH CHECK (true);

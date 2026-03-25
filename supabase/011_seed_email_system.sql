@@ -15,127 +15,37 @@ INSERT INTO email_templates (category, name, language, channel, subject_line, bo
  'Our curated restaurant & experience recommendations',
  'Dear {guest_name},
 
-We are delighted to share with you a selection of carefully chosen restaurants and experiences, perfectly aligned with the spirit of the Martin Boutique Hotel.
+We are delighted to share with you a selection of carefully chosen restaurants, perfectly aligned with the spirit of the Martin Boutique Hotel.
 
-These are places we genuinely love, that we frequent ourselves, and that we are happy to introduce to you during your stay with us. Of course, these suggestions are just a starting point: as you know, we also enjoy guiding you day by day, according to your mood and desires, and whispering along the way a few of our best-kept secrets.
+These are places we genuinely love, that we frequent ourselves, and that we are happy to introduce to you during your stay with us. Of course, these suggestions are just a starting point: we also enjoy guiding you day by day, according to your mood and desires.
 
-This selection blends French gastronomy, intimate addresses, unexpected spots, and authentic local experiences.
-At Saint-Martin, each day has its own ambiance… and every table tells a story.
+{restaurant_list}
 
-For Lunch
-
-Karibuni – Ilet Pinel
-An unmissable experience. If you set off directly from the hotel by kayak, nothing compares to watching turtles and fish before arriving at the beach. A joyful, relaxed atmosphere, feet in the sand — simple, lively luxury.
-
-Coco Beach – Orient Bay
-A chic classic by the sea, perfect for a sunny and elegant lunch, with refined cuisine and a gentle, summery ambiance.
-
-Aloha – Orient Bay
-A friendly, modern, and relaxed spot, ideal for a lunch by the sea in a light and pleasant atmosphere.
-
-Anse Marcel Beach Restaurant – Anse Marcel
-A splendid, peaceful, and elegant natural setting for a timeless lunch, between the turquoise bay and refined cuisine.
-
-For Dinner
-
-Calmos Cafe – Grand Case
-By the water, with a casual and relaxed atmosphere, impeccable service, and one of the island''s most beautiful sunsets. Not to be missed.
-
-Le Java – Grand Case
-In the same spirit, a warm and welcoming atmosphere, perfect for a dinner by the sea at dusk.
-
-Maison Mere – Orient Bay
-A contemporary, elegant, and creative table, where the cuisine is generous and inspired.
-
-L''Atelier – Orient Bay
-Refined cuisine in an elegant and intimate setting, perfect for a gentle, memorable dinner.
-
-Le Cottage – Grand Case
-An iconic gastronomic address, offering a timeless and sophisticated French dining experience.
-
-Les Galets – Grand Case
-Our absolute favorite. A very intimate, sincere place, perfectly aligned with our hotel''s spirit: sensitive cuisine, a cozy atmosphere, and truly moving moments at the table.
-
-L''Astrolabe – Grand Case
-Famous for its lobster nights, an elegant and warm institution for lovers of fine dining.
-
-Les Lolos – Grand Case
-Typical Creole cuisine, BBQ, local ambiance, and authentic flavors: a true immersion into the soul of Saint-Martin.
-
-We remain, of course, at your full disposal to make reservations, refine these suggestions, or guide you according to your desires in the moment.
-
-We look forward to sharing these wonderful addresses with you,
-and to continuing to craft together an experience that truly reflects you.
+We remain at your full disposal to make reservations, refine these suggestions, or guide you according to your desires in the moment.
 
 Warm regards,
-Marion / Idalia
+Marion & Emmanuel
 The Martin Boutique Hotel',
- ARRAY['guest_name'],
- 'Template principal envoyé à tous les clients avant ou pendant le séjour. Utilisé systématiquement dans les threads Richard, Jon, Rosenberg.'),
+ ARRAY['guest_name', 'restaurant_list'],
+ 'Template restaurant. La variable {restaurant_list} doit être remplie UNIQUEMENT avec les restaurants retournés par search_restaurants.'),
 
 
 -- ── Restaurant Reco FR (email) ──
 ('restaurant_reco', 'Recommandations restaurants — Email FR', 'fr', 'email',
- 'Nos recommandations gourmandes & expériences locales',
+ 'Nos recommandations gourmandes',
  'Chers {guest_name},
 
-Nous sommes ravis de vous proposer une sélection de restaurants et d''expériences soigneusement choisis, en parfaite harmonie avec l''ADN du Martin Boutique Hotel.
+Nous sommes ravis de vous proposer une sélection de restaurants soigneusement choisis, en parfaite harmonie avec l''esprit du Martin Boutique Hotel.
 
-Il s''agit de lieux que nous aimons sincèrement, que nous fréquentons, et que nous sommes heureux de vous faire découvrir au fil de votre séjour parmi nous. Bien entendu, ces suggestions ne sont qu''un point de départ : comme vous le savez, nous aimons aussi vous accompagner jour après jour, selon vos envies, votre humeur, et vous chuchoter, au fil de votre séjour, quelques-uns de nos secrets les mieux gardés.
+{restaurant_list}
 
-Cette sélection mêle gastronomie française, adresses intimistes, lieux surprenants et expériences plus locales.
-A Saint-Martin, chaque jour a son ambiance… et chaque table raconte une histoire.
-
-Pour le déjeuner
-
-Karibuni – Ilet Pinel
-Une expérience incontournable. Si vous partez directement de l''hôtel en kayak, rien de plus magique que d''observer tortues et poissons avant de rejoindre la plage. Une ambiance joyeuse, décontractée, les pieds dans le sable : le luxe simple et vivant.
-
-Coco Beach – Orient Bay
-Un classique chic en bord de mer, idéal pour un déjeuner élégant, ensoleillé, avec une cuisine raffinée et une atmosphère douce et estivale.
-
-Aloha – Orient Bay
-Une adresse conviviale, moderne et décontractée, parfaite pour un lunch face à la mer dans une ambiance légère et agréable.
-
-Anse Marcel Beach Restaurant – Anse Marcel
-Un cadre naturel splendide, paisible et élégant, pour un déjeuner hors du temps, entre baie turquoise et cuisine soignée.
-
-Pour le dîner
-
-Calmos Cafe – Grand Case
-Au bord de l''eau, une ambiance casual et décontractée, un service impeccable et l''un des plus beaux couchers de soleil de l''île. A ne pas manquer.
-
-Le Java – Grand Case
-Dans le même esprit, une atmosphère chaleureuse et conviviale, idéale pour profiter d''un dîner face à la mer au crépuscule.
-
-Maison Mere – Orient Bay
-Une table contemporaine, élégante et créative, où la cuisine se veut généreuse et inspirée.
-
-L''Atelier – Orient Bay
-Une cuisine fine et maîtrisée, dans un cadre élégant et intimiste, parfait pour un dîner tout en douceur.
-
-Le Cottage – Grand Case
-Une adresse gastronomique emblématique, pour une expérience française raffinée et intemporelle.
-
-Les Galets – Grand Case
-Notre coup de coeur absolu. Un lieu très intimiste, sincère, profondément aligné avec notre ADN : une cuisine sensible, une atmosphère feutrée, et une vraie émotion à table.
-
-L''Astrolabe – Grand Case
-Réputé pour ses soirées langoustes, une institution élégante et chaleureuse pour les amateurs de belles tables.
-
-Les Lolos – Grand Case
-Cuisine créole typique, BBQ, ambiance locale et authentique : une immersion gourmande au coeur de l''âme de Saint-Martin.
-
-Nous restons bien entendu à votre entière disposition pour effectuer les réservations, affiner ces suggestions ou vous guider selon vos envies du moment.
-
-Au plaisir de partager avec vous ces belles adresses,
-et de continuer à façonner ensemble une expérience qui vous ressemble.
+Nous restons à votre entière disposition pour effectuer les réservations ou vous guider selon vos envies du moment.
 
 Chaleureusement,
-Marion / Idalia
+Marion & Emmanuel
 Le Martin Boutique Hotel',
- ARRAY['guest_name'],
- 'Version française du template restaurant.'),
+ ARRAY['guest_name', 'restaurant_list'],
+ 'Version française du template restaurant. La variable {restaurant_list} doit être remplie UNIQUEMENT avec les restaurants retournés par search_restaurants.'),
 
 
 -- ── Restaurant Reco EN (WhatsApp) ──
@@ -143,30 +53,16 @@ Le Martin Boutique Hotel',
  NULL,
  'Hello {guest_name},
 
-We''re delighted to share a few restaurants and experiences that we love and think you''ll enjoy during your stay at the Martin Boutique Hotel.
+We''re delighted to share a few restaurants we love for your stay at the Martin Boutique Hotel.
 
-For lunch:
-- Karibuni – Ilet Pinel: Kayak trip from the hotel, watch turtles & fish before the beach, joyful and relaxed.
-- Coco Beach – Orient Bay: Chic, sunny, feet in the sand.
-- Aloha – Orient Bay: Friendly, modern, casual.
-- Anse Marcel Beach Restaurant: Peaceful, elegant, with a turquoise bay.
+{restaurant_list}
 
-For dinner:
-- Calmos Cafe – Grand Case: Casual, impeccable service, one of the most beautiful sunsets.
-- Le Java – Grand Case: Warm, relaxed, perfect for a sunset dinner by the sea.
-- Maison Mere – Orient Bay: Contemporary, elegant & creative.
-- L''Atelier – Orient Bay: Refined cuisine in an intimate setting.
-- Le Cottage – Grand Case: Iconic French gastronomy.
-- Les Galets – Grand Case: Intimate, sincere, our favorite.
-- L''Astrolabe – Grand Case: Famous for lobster nights, elegant & warm.
-- Les Lolos – Grand Case: Authentic Creole BBQ, lively local atmosphere.
-
-Of course, we''re happy to help with reservations or guide you day by day according to your mood and desires.
+Happy to help with reservations or guide you day by day!
 
 Warm regards,
-Marion / Idalia',
- ARRAY['guest_name'],
- 'Version courte WhatsApp pour envoi mobile.'),
+Marion & Emmanuel',
+ ARRAY['guest_name', 'restaurant_list'],
+ 'Version courte WhatsApp. Remplir {restaurant_list} UNIQUEMENT avec search_restaurants.'),
 
 
 -- ── Restaurant Reco FR (WhatsApp) ──
@@ -174,30 +70,16 @@ Marion / Idalia',
  NULL,
  'Bonjour {guest_name},
 
-Nous sommes ravis de partager avec vous quelques adresses de restaurants et expériences que nous aimons et qui feront briller votre séjour au Martin Boutique Hotel.
+Voici quelques adresses que nous aimons pour votre séjour au Martin Boutique Hotel.
 
-Pour le déjeuner :
-- Karibuni – Ilet Pinel : Départ en kayak depuis l''hôtel, tortues et poissons avant la plage, ambiance joyeuse et détendue.
-- Coco Beach – Orient Bay : Chic, ensoleillé, pieds dans le sable.
-- Aloha – Orient Bay : Convivial, moderne et décontracté.
-- Anse Marcel Beach Restaurant : Cadre paisible et élégant, avec la baie turquoise.
+{restaurant_list}
 
-Pour le dîner :
-- Calmos Cafe – Grand Case : Casual, service impeccable, coucher de soleil magnifique.
-- Le Java – Grand Case : Chaleureux et décontracté, idéal pour le soir.
-- Maison Mere – Orient Bay : Contemporain, élégant et créatif.
-- L''Atelier – Orient Bay : Cuisine raffinée dans un cadre intimiste.
-- Le Cottage – Grand Case : Gastronomie française emblématique.
-- Les Galets – Grand Case : Intime et sincère, notre coup de coeur.
-- L''Astrolabe – Grand Case : Réputé pour ses soirées langoustes, élégant et chaleureux.
-- Les Lolos – Grand Case : Cuisine créole authentique, BBQ et ambiance locale.
-
-Nous sommes à votre disposition pour réserver vos tables ou vous guider au fil du séjour selon vos envies.
+Nous sommes à votre disposition pour réserver vos tables !
 
 Chaleureusement,
-Marion / Idalia',
- ARRAY['guest_name'],
- 'Version courte WhatsApp FR.'),
+Marion & Emmanuel',
+ ARRAY['guest_name', 'restaurant_list'],
+ 'Version courte WhatsApp FR. Remplir {restaurant_list} UNIQUEMENT avec search_restaurants.'),
 
 
 -- ── Location voiture EN ──
@@ -219,7 +101,7 @@ Warm regards,
 Marion / Idalia
 Le Martin Boutique Hotel',
  ARRAY['guest_name', 'arrival_date', 'departure_date', 'special_requests'],
- 'Email envoyé à Escale Mail (Sébastien & Eve) avec le client en copie. Le loueur livre la voiture à l''aéroport. special_requests = ex: siège auto enfant.'),
+ 'Email envoyé à Escale Car Rental (Sébastien & Eve) avec le client en copie. Le loueur livre la voiture à l''aéroport. special_requests = ex: siège auto enfant.'),
 
 
 -- ── Location voiture FR ──
@@ -241,7 +123,7 @@ Bien chaleureusement,
 Marion / Idalia
 Le Martin Boutique Hotel',
  ARRAY['guest_name', 'arrival_date', 'departure_date', 'special_requests'],
- 'Version FR du forward Escale Mail.'),
+ 'Version FR du forward Escale Car Rental.'),
 
 
 -- ── Annulation EN ──
@@ -388,12 +270,12 @@ Marion',
 
 INSERT INTO partners (name, service_type, contact_name, contact_email, contact_phone, website, description_fr, description_en, pricing_info, notes) VALUES
 
-('Escale Mail', 'car_rental',
+('Escale Car Rental', 'car_rental',
  'Sébastien & Eve', NULL, NULL, NULL,
  'Société de location de voiture partenaire. Amis de Marion et Emmanuel. Super service, trouvent toujours des solutions pour les clients. Livraison possible à l''aéroport.',
  'Trusted car rental partner. Friends of Marion and Emmanuel. Excellent service, always find solutions for guests. Airport delivery available.',
  'Devis sur demande selon durée du séjour. Siège auto enfant disponible sur demande.',
- 'Utiliser le template email "car_rental" pour mettre en relation client et Escale Mail. Toujours mettre le client en copie.'),
+ 'Utiliser le template email "car_rental" pour mettre en relation client et Escale Car Rental. Toujours mettre le client en copie.'),
 
 ('Bubble Shop', 'snorkeling',
  NULL, NULL, NULL, NULL,
@@ -592,7 +474,7 @@ Please let me know if you would like me to go ahead and secure this extra night 
 
 Warm regards,
 Marion',
- 'Client fidèle (Richard) qui revient pour la 2e année. Réservation existante dans la chambre Marcelle.',
+ 'Client fidèle (Richard) qui revient pour la 2e année. Réservation existante.',
  ARRAY[
    'Créer un sentiment d''urgence subtil sans être pushy',
    'Mentionner que des ajustements ont été faits = valorise l''effort',
@@ -603,28 +485,23 @@ Marion',
 
 -- Exemple 3 : Recommandation restaurant personnalisée
 ('concierge_restaurant', 'Client demande conseil restaurant spécifique',
- 'We were hoping you could help us with a beach club reservation this coming Sunday. We really enjoyed Coco Beach last year but understand they are under new ownership. Would you still recommend? We want more of a French vibe than an American vibe. Do they still have French DJs on Sunday? Also, how is the new place, Babacool in Simpson Bay?',
+ 'We were hoping you could help us with dinner reservations. We are looking for a romantic spot with good food and French atmosphere. Any recommendations?',
  'Dear Richard,
 
 We are looking forward to seeing you soon!
 
-Coco Beach is still a wonderful spot — the change in ownership has been very positive, and the atmosphere remains fantastic. The French DJ on Sunday evenings is still there, so you''ll get the same French vibe you enjoyed last year.
+I would love to recommend a couple of our favorite spots. Let me check availability and come back to you with a confirmed reservation.
 
-Your reservation is confirmed for Sunday!
-
-Regarding Babacool in Simpson Bay, I haven''t personally been, and the feedback I''ve heard hasn''t been very strong. If you''re looking for a better experience, I would recommend Kalatua instead — it''s more reliable and enjoyable.
-
-[... suivi du template restaurant complet ...]
+I''ll also send you our full restaurant guide to help plan your evenings.
 
 Warm regards,
-Marion',
- 'Client fidèle qui connaît déjà l''île. Demande conseil sur un lieu spécifique + comparaison.',
+Marion & Emmanuel',
+ 'Client demande conseil restaurant. L''IA doit appeler search_restaurants pour recommander UNIQUEMENT les restaurants de la base.',
  ARRAY[
-   'Répondre d''abord à la question spécifique AVANT d''envoyer le template',
-   'Être honnête sur les endroits non recommandés (Babacool: feedback pas très fort)',
-   'Proposer une alternative concrète (Kalatua au lieu de Babacool)',
-   'Confirmer la réservation directement quand c''est possible',
-   'Ajouter le template restaurant complet après la réponse personnalisée'
+   'TOUJOURS appeler search_restaurants avant de recommander un restaurant',
+   'Ne JAMAIS citer un restaurant qui n''est pas retourné par search_restaurants',
+   'Proposer de faire la réservation pour le client',
+   'Être honnête si un lieu n''est pas connu — ne jamais inventer'
  ], 'en'),
 
 
@@ -635,24 +512,26 @@ Marion',
 
 Thank you very much for your message and for your interest in the Martin Boutique Hotel. We would be truly delighted to welcome you and your wife to celebrate her birthday with us.
 
-Indeed, we no longer have availability for the entire stay in the same room. However, we would be very happy to offer you the following alternative, which will allow you to fully enjoy your time with us:
+Indeed, we no longer have availability for the entire stay in the same room. However, we would be very happy to offer you the following alternative:
 
-From February 19th to 23rd: the Deluxe Suite – Garden View, also known as La Chambre de Marius.
-From February 23rd to 26th: the Privilege Room – La Chambre de Pierre.
+From February 19th to 23rd: the Deluxe Sea View Suite.
+From February 23rd to 26th: the Privilege Room garden view.
 
-I will send you, in a separate email, a detailed quotation including our Advance Purchase rate, which offers a 10% discount. Please note that this rate is non-refundable, non-changeable, and non-cancellable.
+I will send you a detailed quotation including our Advance Purchase rate, which offers a 10% discount. Please note that this rate is non-refundable and non-cancellable.
 
-Please feel free to let me know if this arrangement suits you or if you have any questions at all.
+You can also book directly here: https://lemartinhotel.thais-hotel.com/direct-booking/calendar
+
+Please let me know if this arrangement suits you.
 
 Warm regards,
-Marion',
+Marion & Emmanuel',
  'Client souhaite 1 chambre sur 7 nuits mais aucune chambre n''est dispo sur toute la période.',
  ARRAY[
    'Quand pas de dispo en 1 chambre, proposer 2 chambres consécutives',
-   'Nommer les chambres par leur nom (Marius, Pierre) + lien site web',
-   'Mentionner le tarif Advance Purchase (-10%) dès le début',
+   'JAMAIS utiliser les noms internes (Marius, Pierre, Marcelle, etc.) — catégories publiques uniquement',
+   'TOUJOURS inclure le lien de réservation',
+   'Mentionner le tarif Advance Purchase (-10%)',
    'Préciser les conditions (non remboursable, non modifiable)',
-   'Envoyer le devis dans un email séparé',
    'Reconnaître l''occasion spéciale (anniversaire)'
  ], 'en'),
 
@@ -682,7 +561,7 @@ Marion & Idalia',
  ARRAY[
    'Toujours noter le numéro de vol et l''heure d''arrivée',
    'Structurer la réponse par thème (voiture, fitness, activités, restaurants)',
-   'Pour la voiture: proposer le partenaire Escale Mail avec livraison aéroport',
+   'Pour la voiture: proposer le partenaire Escale Car Rental avec livraison aéroport',
    'Pour le fitness: recommander Hopfit Hope Estate (5 min)',
    'Pour les activités: kayak Pinel, snorkeling Bubble Shop, rando Lottery Farm',
    'Finir par le template restaurant complet',
@@ -729,59 +608,39 @@ We can also arrange a bouquet of flowers for the room.
 
 Please note that I cannot fully guarantee the balloon floating effect, as it requires a helium tank and, on a small island, it can sometimes be challenging to source certain supplies… but I will absolutely do my best to make it beautiful.
 
-Here are the rates:
-- Birthday decoration: 75 EUR
-- Flower bouquet: 60 EUR
-- Massage (1 hour): 165 EUR
-
-Let me know what you would like us to prepare, and I will take care of everything for you.
+Let me check the exact rates for you and come back with a detailed quote.
 
 Warm regards,
-Marion',
+Marion & Emmanuel',
  'Réservation au nom d''une personne, mais c''est son amie qui organise la surprise.',
  ARRAY[
    'Répondre avec enthousiasme aux occasions spéciales',
    'Détailler le process (10 ballons, 10 messages)',
    'Être transparente sur les limitations (hélium sur une petite île)',
-   'Proposer des extras (fleurs, massage) en upsell naturel',
-   'Tarifs transfert: 90 EUR (hôtel organise), 115 EUR (via site), ~50 EUR (taxi direct)',
-   'Pour le transfert: demander ville de départ, compagnie, numéro de vol, heure d''arrivée'
+   'TOUJOURS appeler get_hotel_services pour les tarifs — ne JAMAIS citer un prix de mémoire',
+   'Proposer des extras (fleurs, massage) en upsell naturel'
  ], 'en'),
 
 
 -- Exemple 8 : Planning restaurant complet sur séjour long
-('concierge_restaurant', 'Organisation complète lunch + dîner sur 10 jours',
- 'Thank you for sharing your preferred restaurants for dinner. [Client a envoyé sa liste de restaurants souhaités pour chaque jour de son séjour de 10 nuits]',
+('concierge_restaurant', 'Organisation complète dîners sur séjour long',
+ 'Could you help us organize dinner reservations for our 7-night stay? We love good food and would like a mix of French and Italian.',
  'Dear Joseph and Phil,
 
-We are delighted to welcome you back and look forward to having you with us again.
+We are delighted to welcome you back!
 
-Please note that dinner seatings are typically available at 6:00 or 6:30 p.m., and 8:00 or 8:30 p.m. However, we were able to secure one of your reservations for 7:30 p.m.
+Dinner seatings are typically available at 6:30 p.m. or 8:00 p.m. I will check our recommended restaurants and come back to you with a full dinner plan for your stay.
 
-We are pleased to confirm that all of your lunch & dinner reservations have been secured as follows:
-
-Friday, February 27
-Lunch: Coco Beach – Beach chairs and lunch confirmed for 12:30 p.m.
-Dinner: Maison Mere – Confirmed for 8:00 p.m.
-
-Saturday, February 28
-Lunch: Joa Beach – Beach chairs and lunch confirmed for 12:30 p.m.
-Dinner: Le Pressoir – Confirmed for 8:00 p.m.
-
-[... suite du planning jour par jour ...]
-
-Please do not hesitate to let us know if there is anything further we may assist you with.
+I''ll make sure to include a variety of cuisines and atmospheres.
 
 Kind regards,
-Idalia',
- 'Clients fidèles (3e séjour). Planning lunch + dîner sur 10 jours avec beach chairs.',
+Marion & Emmanuel',
+ 'Client fidèle, séjour long. L''IA doit appeler search_restaurants pour organiser les dîners avec UNIQUEMENT les restaurants de la base.',
  ARRAY[
-   'Pour les séjours longs (>7 nuits), proposer d''organiser tous les repas',
-   'Mentionner les créneaux disponibles (18h/18h30 et 20h/20h30)',
-   'Inclure les beach chairs pour les déjeuners en bord de mer',
-   'Format: jour par jour, Lunch + Dinner, nom du restaurant, heure confirmée',
-   'Si un restaurant nécessite une carte bancaire (ex: Rainbow Cafe), le préciser',
-   'Idalia signe ce type de mail opérationnel (pas Marion)'
+   'Pour les séjours longs, proposer d''organiser tous les repas',
+   'Mentionner les créneaux disponibles (18h30 et 20h)',
+   'TOUJOURS appeler search_restaurants — ne jamais citer un restaurant de mémoire',
+   'Format: jour par jour, nom du restaurant, heure confirmée'
  ], 'en'),
 
 
@@ -817,32 +676,32 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 -- Classification des emails
 ('Classification email — restaurant', 'response',
  'Le client demande des recommandations de restaurants, des suggestions pour déjeuner ou dîner, ou mentionne qu''il cherche où manger.',
- 'Utiliser le template email_templates.category = "restaurant_reco" dans la langue du client. Personnaliser l''introduction avant le template. Répondre d''abord aux questions spécifiques si le client mentionne un restaurant précis.',
+ 'Appeler search_restaurants pour obtenir les restaurants disponibles. Personnaliser l''introduction. Ne citer QUE les restaurants retournés par l''outil.',
  30, TRUE),
 
 ('Classification email — location voiture', 'response',
  'Le client demande comment se déplacer, s''il faut louer une voiture, ou demande un transfert depuis l''aéroport.',
- 'Recommander la location de voiture avec le partenaire Escale Mail (Sébastien & Eve). Utiliser le template email_templates.category = "car_rental". Mettre le client en copie du mail au partenaire.',
+ 'Recommander la location de voiture avec le partenaire Escale Car Rental (Sébastien & Eve). Utiliser le template email_templates.category = "car_rental". Mettre le client en copie du mail au partenaire.',
  31, TRUE),
 
 ('Classification email — occasion spéciale', 'response',
  'Le client mentionne un anniversaire, une lune de miel, un anniversaire de mariage ou toute occasion spéciale.',
- 'Proposer la décoration chambre (75 EUR), le bouquet de fleurs (60 EUR) et le massage (165 EUR/h). Utiliser le template email_templates.category = "birthday". Adapter le message selon l''occasion.',
+ 'Appeler get_hotel_services pour obtenir les tarifs exacts (décoration, bouquet, massage). Adapter le message selon l''occasion. Ne JAMAIS citer un prix de mémoire.',
  32, TRUE),
 
 ('Classification email — activités', 'response',
  'Le client demande des activités, des choses à faire, ou des expériences sur l''île.',
- 'Répondre avec les données de la table activities + partners. Recommander en priorité : kayak vers Pinel (40 EUR/kayak double), snorkeling avec Bubble Shop (Rocher Créole, 3h), randonnée Lottery Farm/Pic Paradis. Pour les ados : insister sur kayak, jet ski Orient Bay, zipline Lottery Farm.',
+ 'Appeler search_activities pour obtenir les activités disponibles avec les tarifs. Ne citer QUE les activités retournées par l''outil. Ne JAMAIS inventer un prix.',
  33, TRUE),
 
 ('Classification email — transport inter-îles', 'response',
  'Le client demande comment aller à Anguilla ou Saint-Barthélemy.',
- 'Consulter la table transport_schedules. Pour Anguilla: ferry depuis Marigot, 20 min, 30 EUR. Pour St. Barth: recommander Great Bay Express (côté hollandais, 45 min, 3 rotations/jour). Toujours mentionner le passeport obligatoire.',
+ 'Appeler get_transport_schedules pour obtenir les horaires et tarifs exacts. Toujours mentionner le passeport obligatoire. Ne JAMAIS citer un prix de mémoire.',
  34, TRUE),
 
 ('Classification email — transfert aéroport', 'response',
  'Le client demande un transfert aéroport ou comment se rendre à l''hôtel depuis l''aéroport.',
- 'Proposer 3 options. Recommandée: hôtel organise (90 EUR). Alternative: en ligne (115 EUR aéroport, 75 EUR hôtel). Taxi direct: ~50 EUR. Trajet Princess Juliana → hôtel = 1h. Demander: ville départ, compagnie, vol, heure arrivée.',
+ 'Appeler get_hotel_services pour obtenir les tarifs de transfert. Trajet Princess Juliana → hôtel = 1h. Demander: ville départ, compagnie, vol, heure arrivée. Ne JAMAIS citer un prix de mémoire.',
  35, TRUE),
 
 ('Classification email — pré-arrivée', 'response',
@@ -857,7 +716,7 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
  82, TRUE),
 
 ('Escalade — mise en relation partenaire', 'escalation',
- 'L''email nécessite un contact avec un partenaire externe (Escale Mail, Bubble Shop, etc.).',
+ 'L''email nécessite un contact avec un partenaire externe (Escale Car Rental, Bubble Shop, etc.).',
  'L''IA peut rédiger un brouillon de mail vers un partenaire mais ne doit JAMAIS l''envoyer directement. Toujours passer en mode brouillon supervisé pour les mails vers des partenaires externes.',
  83, TRUE),
 
@@ -879,5 +738,5 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 
 ('Ton — honnêteté recommandations', 'tone',
  'Le client demande un avis sur un lieu ou restaurant spécifique.',
- 'Toujours être honnête. Si un lieu n''est pas recommandé, formuler diplomatiquement: "the feedback I''ve heard hasn''t been very strong" et proposer une alternative. Les Galets = favori absolu. Kalatua = recommandé. Babacool = pas recommandé.',
+ 'Toujours être honnête. Si un lieu n''est pas dans la base, dire "je ne connais pas ce restaurant, je me renseigne pour vous" et appeler request_team_action. Ne JAMAIS inventer un avis sur un restaurant qui n''est pas retourné par search_restaurants.',
  44, TRUE);

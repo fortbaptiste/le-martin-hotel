@@ -35,6 +35,7 @@ class RoomAvailability(BaseModel):
     room_type_id: str
     room_type_name: str
     available: bool
+    rooms_left: int = 0  # number of rooms available (0 = complet)
     price_per_night: Decimal | None = None
     total_price: Decimal | None = None
     currency: str = "EUR"

@@ -27,10 +27,10 @@ class ConfidenceBreakdown(BaseModel):
     @property
     def weighted_score(self) -> float:
         return (
-            self.retrieval_relevance * 0.20
+            self.retrieval_relevance * 0.25
             + self.context_completeness * 0.20
-            + self.llm_self_assessment * 0.25
-            + self.rule_compliance * 0.20
+            + self.llm_self_assessment * 0.15
+            + self.rule_compliance * 0.25
             + self.template_match * 0.15
         )
 

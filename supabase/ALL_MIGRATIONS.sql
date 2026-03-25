@@ -21,7 +21,6 @@ CREATE TYPE message_direction AS ENUM ('inbound', 'outbound');
 CREATE TYPE reservation_status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed', 'no_show');
 CREATE TYPE rate_type AS ENUM ('advance_purchase', 'flexible', 'honeymoon', 'non_refundable', 'other');
 CREATE TYPE escalation_reason AS ENUM ('low_confidence', 'complaint', 'refund_request', 'booking_modification', 'group_request', 'privatization', 'payment_issue', 'out_of_scope', 'unknown_question', 'physical_action_required', 'other');
-CREATE TYPE correction_type AS ENUM ('tone', 'factual', 'missing_info', 'wrong_info', 'grammar', 'policy', 'other');
 CREATE TYPE rule_type AS ENUM ('response', 'escalation', 'tone', 'availability', 'pricing', 'routing', 'greeting', 'signature');
 CREATE TYPE app_mode AS ENUM ('draft', 'auto');
 CREATE TYPE room_category AS ENUM ('prestige', 'deluxe', 'family_suite');
@@ -172,27 +171,7 @@ CREATE INDEX idx_escalations_created ON escalations(created_at DESC);
 
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
---  6. AI_CORRECTIONS — Apprentissage continu
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CREATE TABLE ai_corrections (
-    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    message_id          UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    original_draft      TEXT NOT NULL,
-    corrected_text      TEXT NOT NULL,
-    correction          correction_type DEFAULT 'other',
-    correction_note     TEXT,
-    corrected_by        TEXT DEFAULT 'Marion',
-    created_at          TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_corrections_message ON ai_corrections(message_id);
-CREATE INDEX idx_corrections_type ON ai_corrections(correction);
-CREATE INDEX idx_corrections_created ON ai_corrections(created_at DESC);
-
-
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
---  7. AI_RULES — Règles métier de l'IA
+--  6. AI_RULES — Règles métier de l'IA
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CREATE TABLE ai_rules (
@@ -242,8 +221,13 @@ CREATE TABLE rooms (
     slug            TEXT UNIQUE NOT NULL,
     name            TEXT NOT NULL,
     category        room_category NOT NULL,
+    public_category_fr TEXT,
+    public_category_en TEXT,
     size_m2         INT NOT NULL,
     bed_type        TEXT DEFAULT 'Queen',
+    bed_twinable    BOOLEAN DEFAULT FALSE,
+    extra_bed_price DECIMAL(8,2) DEFAULT 115.00,
+    child_supplement DECIMAL(8,2) DEFAULT 150.00,
     view_fr         TEXT,
     view_en         TEXT,
     floor           TEXT,
@@ -307,6 +291,9 @@ CREATE TABLE restaurants (
     ambiance            TEXT,
     distance_km         DECIMAL(4,1),
     driving_time_min    INT,
+    walkable            BOOLEAN DEFAULT FALSE,
+    access_note_fr      TEXT,
+    access_note_en      TEXT,
     best_for            TEXT[] DEFAULT '{}',
     description_fr      TEXT,
     description_en      TEXT,
@@ -466,7 +453,6 @@ ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE escalations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_corrections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_summaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
@@ -483,7 +469,6 @@ CREATE POLICY "Service role full access" ON conversations FOR ALL USING (true) W
 CREATE POLICY "Service role full access" ON messages FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON reservations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON escalations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON ai_corrections FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON ai_rules FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON daily_summaries FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON rooms FOR ALL USING (true) WITH CHECK (true);
@@ -497,87 +482,108 @@ CREATE POLICY "Service role full access" ON faq FOR ALL USING (true) WITH CHECK 
 -- ║  SEED — Chambres & Suites du Le Martin Boutique Hotel          ║
 -- ╚══════════════════════════════════════════════════════════════════╝
 
-INSERT INTO rooms (slug, name, category, size_m2, bed_type, view_fr, view_en, floor, terrace, capacity_adults, capacity_children, description_fr, description_en, design_style, amenities, accessibility, is_communicating, communicating_with, price_low_season, price_high_season, sort_order) VALUES
+INSERT INTO rooms (slug, name, category, public_category_fr, public_category_en, size_m2, bed_type, bed_twinable, extra_bed_price, child_supplement, view_fr, view_en, floor, terrace, capacity_adults, capacity_children, description_fr, description_en, design_style, amenities, accessibility, is_communicating, communicating_with, price_low_season, price_high_season, sort_order) VALUES
 
 -- MARIUS
-('marius', 'Suite Marius', 'deluxe', 34, 'Queen (ou 2 lits simples)',
+('marius', 'Suite Marius', 'deluxe',
+ 'Suite vue jardin avec grande terrasse (RDC)', 'Garden View Suite with large terrace (ground floor)',
+ 34, 'Queen (non séparable). Lit simple d''appoint possible (115 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue jardin', 'Garden view',
  'Rez-de-chaussée', 'Grande terrasse adjacente à la piscine',
  2, 1,
- 'Suite au rez-de-chaussée avec accès privé, adjacente à la piscine. Design minimaliste aux tons terre, noyer, terrazzo et marbre. Ambiance de studio indépendant. Seule suite accessible PMR. Lit bébé disponible (0-2 ans), lit d''appoint possible (2-17 ans).',
- 'Ground-floor suite with private entrance, adjacent to the pool. Minimalist design with clean earth tones, walnut, terrazzo and marble. Feels like a self-contained studio. Only wheelchair-accessible suite. Cot available (0-2), extra bed possible (2-17).',
+ 'Suite au rez-de-chaussée avec accès privé, adjacente à la piscine. Design minimaliste aux tons terre, noyer, terrazzo et marbre. Ambiance de studio indépendant. Seule suite accessible PMR. Lit bébé disponible (0-2 ans), lit d''appoint simple possible (115 €/nuit). Les lits ne sont PAS séparables en twin.',
+ 'Ground-floor suite with private entrance, adjacent to the pool. Minimalist design with clean earth tones, walnut, terrazzo and marble. Feels like a self-contained studio. Only wheelchair-accessible suite. Cot available (0-2). Extra single bed possible (€115/night). Beds are NOT twinable.',
  'Minimaliste, tons terre, noyer, terrazzo, marbre',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Service de blanchisserie"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Service de blanchisserie"]',
  TRUE, FALSE, NULL,
  294.00, 470.00, 1),
 
 -- PIERRE
-('pierre', 'Chambre Pierre', 'prestige', 22, 'Queen',
+('pierre', 'Chambre Pierre', 'prestige',
+ 'Chambre Privilège vue jardin (étage)', 'Privilege Room garden view (upper floor)',
+ 22, 'Queen (non séparable). Lit simple d''appoint possible (115 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue jardin tropical avec aperçu mer', 'Tropical garden view with ocean glimpses',
  'Étage supérieur', 'Petite terrasse couverte',
  2, 2,
- 'Chambre intime et bucolique à l''étage. Décoration minimaliste originale en bois, pierre, marbre et feuillage. Ambiance feutrée avec des senteurs subtiles de mousse. Fauteuil confortable inclus. Communicante avec la Suite Marcelle pour former la Suite Familiale.',
- 'Intimate, bucolic upper-level room. Original minimalist decoration in wood, stone, marble and foliage. Hushed atmosphere with subtle moss scents. Easy chair included. Connects with Marcelle Suite to form the Family Suite.',
+ 'Chambre intime et bucolique à l''étage. Décoration minimaliste originale en bois, pierre, marbre et feuillage. Ambiance feutrée avec des senteurs subtiles de mousse. Fauteuil confortable inclus. Communicante avec la Suite Marcelle pour former la Suite Familiale. Les lits ne sont PAS séparables en twin.',
+ 'Intimate, bucolic upper-level room. Original minimalist decoration in wood, stone, marble and foliage. Hushed atmosphere with subtle moss scents. Easy chair included. Connects with Marcelle Suite to form the Family Suite. Beds are NOT twinable.',
  'Original, feutré, bois, pierre, marbre, feuillage, bucolique',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Fauteuil confortable"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Fauteuil confortable"]',
  FALSE, TRUE, 'marcelle',
  294.00, 410.00, 2),
 
 -- MARCELLE
-('marcelle', 'Suite Marcelle', 'deluxe', 30, 'Queen',
+('marcelle', 'Suite Marcelle', 'deluxe',
+ 'Suite Deluxe vue mer (étage)', 'Deluxe Sea View Suite (upper floor)',
+ 30, 'Queen (non séparable). Lit simple d''appoint possible (115 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue mer', 'Ocean view',
  'Étage supérieur', 'Grande terrasse vue jardin',
  2, 2,
- 'Suite lumineuse à l''étage avec vue mer. Décoration minimaliste originale en bois, pierre, marbre et feuillage. "Une chambre au bord d''une clairière, réveillée par la douce chaleur d''un rayon de soleil." Communicante avec la Chambre Pierre pour former la Suite Familiale.',
- 'Bright upper-level suite with ocean view. Original minimalist decoration in wood, stone, marble and foliage. "A room at the edge of a clearing, awakened by the gentle warmth of a sunbeam." Connects with Pierre Room to form the Family Suite.',
+ 'Suite lumineuse à l''étage avec vue mer. Décoration minimaliste originale en bois, pierre, marbre et feuillage. "Une chambre au bord d''une clairière, réveillée par la douce chaleur d''un rayon de soleil." Communicante avec la Chambre Pierre pour former la Suite Familiale. Les lits ne sont PAS séparables en twin.',
+ 'Bright upper-level suite with ocean view. Original minimalist decoration in wood, stone, marble and foliage. "A room at the edge of a clearing, awakened by the gentle warmth of a sunbeam." Connects with Pierre Room to form the Family Suite. Beds are NOT twinable.',
  'Lumineux, minimaliste, bois, pierre, marbre, feuillage',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
  FALSE, TRUE, 'pierre',
  294.00, 470.00, 3),
 
 -- RENÉ
-('rene', 'Suite René', 'deluxe', 41, 'Queen',
+('rene', 'Suite René', 'deluxe',
+ 'Suite Deluxe vue mer panoramique (étage)', 'Deluxe Panoramic Sea View Suite (upper floor)',
+ 41, 'Queen (non séparable)',
+ FALSE, 115.00, 150.00,
  'Vue mer panoramique', 'Panoramic ocean view',
  'Étage supérieur', 'Grande terrasse avec salon, table, chaises, bains de soleil',
  2, 0,
- 'La plus spacieuse de l''hôtel (41 m²). Vue mer panoramique. "L''ambiance calme et feutrée d''un atelier d''artiste" — peintures éparses, jeux d''ombre et de lumière. Une ode à la rêverie. Idéale pour les lunes de miel. La mer murmure à votre fenêtre au réveil.',
- 'The most spacious suite in the hotel (41 m²). Panoramic ocean view. "The quiet, hushed ambience of an artist''s studio" — scattered paintings, interplay of shadow and light. An ode to reverie. Ideal for honeymoons. The sea whispers at your window as you greet the day.',
+ 'La plus spacieuse de l''hôtel (41 m²). Vue mer panoramique. "L''ambiance calme et feutrée d''un atelier d''artiste" — peintures éparses, jeux d''ombre et de lumière. Une ode à la rêverie. Idéale pour les lunes de miel. La mer murmure à votre fenêtre au réveil. Les lits ne sont PAS séparables en twin.',
+ 'The most spacious suite in the hotel (41 m²). Panoramic ocean view. "The quiet, hushed ambience of an artist''s studio" — scattered paintings, interplay of shadow and light. An ode to reverie. Ideal for honeymoons. The sea whispers at your window as you greet the day. Beds are NOT twinable.',
  'Atelier d''artiste, peintures, jeux d''ombre et lumière, rêverie',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Salon terrasse avec mobilier"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation", "Salon terrasse avec mobilier"]',
  FALSE, FALSE, NULL,
  329.00, 540.00, 4),
 
 -- MARTHE
-('marthe', 'Suite Marthe', 'deluxe', 28, 'Queen',
+('marthe', 'Suite Marthe', 'deluxe',
+ 'Suite Deluxe vue mer (étage)', 'Deluxe Sea View Suite (upper floor)',
+ 28, 'Queen (non séparable). Lit simple d''appoint possible (115 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue mer', 'Ocean view',
  'Étage supérieur', 'Terrasse vue mer avec table, chaises, bains de soleil',
  2, 0,
- 'Suite intime et chaleureuse avec vue mer. Décoration chic et décontractée de style parisien. Terrasse avec vue sur l''océan pour des moments de détente parfaits.',
- 'Intimate and warm suite with ocean view. Chic, relaxed Parisian-style decor. Terrace with ocean views for perfect moments of relaxation.',
+ 'Suite intime et chaleureuse avec vue mer. Décoration chic et décontractée de style parisien. Terrasse avec vue sur l''océan pour des moments de détente parfaits. Les lits ne sont PAS séparables en twin.',
+ 'Intimate and warm suite with ocean view. Chic, relaxed Parisian-style decor. Terrace with ocean views for perfect moments of relaxation. Beds are NOT twinable.',
  'Chic parisien, décontracté, intime, chaleureux',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
  FALSE, FALSE, NULL,
  294.00, 470.00, 5),
 
 -- GEORGETTE
-('georgette', 'Suite Georgette', 'deluxe', 28, 'Queen',
+('georgette', 'Suite Georgette', 'deluxe',
+ 'Suite Deluxe vue mer (étage)', 'Deluxe Sea View Suite (upper floor)',
+ 28, 'Queen (non séparable). Lit simple d''appoint possible (115 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue mer', 'Ocean view',
  'Étage supérieur', 'Grande terrasse vue jardin',
  2, 0,
- 'Suite élégante avec vue mer et grande terrasse sur le jardin. Décoration chic et décontractée de style parisien. Un havre de paix élégant baigné de lumière naturelle.',
- 'Elegant suite with ocean view and large garden terrace. Chic, relaxed Parisian-style decor. An elegant haven of peace bathed in natural light.',
+ 'Suite élégante avec vue mer et grande terrasse sur le jardin. Décoration chic et décontractée de style parisien. Un havre de paix élégant baigné de lumière naturelle. Les lits ne sont PAS séparables en twin.',
+ 'Elegant suite with ocean view and large garden terrace. Chic, relaxed Parisian-style decor. An elegant haven of peace bathed in natural light. Beds are NOT twinable.',
  'Élégant, chic parisien, décontracté, lumineux',
- '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
+ '["Climatisation", "Smart TV Apple TV + streaming", "WiFi gratuit", "Machine Nespresso", "Bouilloire SMEG", "Kit thé", "Minibar (sodas, eau, vin — pas un réfrigérateur pour nourriture personnelle)", "Coffre-fort", "Prises USB-C et USB-D", "Bureau + bloc-notes", "Penderie", "Douche pluie walk-in", "Produits Grown Alchemist", "Peignoirs nid d''abeille brodés", "Linge de maison premium", "Sacs de plage en paille + serviettes plage", "Insonorisation"]',
  FALSE, FALSE, NULL,
  294.00, 470.00, 6),
 
 -- FAMILY SUITE (Marcelle + Pierre)
-('family-suite', 'Suite Familiale (Marcelle & Pierre)', 'family_suite', 52, '2 Queen',
+('family-suite', 'Suite Familiale (Marcelle & Pierre)', 'family_suite',
+ 'Suite Familiale (chambres communicantes)', 'Family Suite (connecting rooms)',
+ 52, '2 Queen (non séparables). Jusqu''à 3 lits d''appoint possibles (115 €/nuit/lit, supplément enfant 150 €/nuit)',
+ FALSE, 115.00, 150.00,
  'Vue mer + vue jardin', 'Ocean view + garden view',
  'Étage supérieur', '2 grandes terrasses couvertes et meublées',
  4, 2,
- 'Combinaison des 2 chambres communicantes Marcelle (30 m²) et Pierre (22 m²) pour former une suite familiale de 52 m². 2 chambres, 2 salles de bain, 2 terrasses. Jusqu''à 3 lits d''appoint possibles. Idéale pour les familles.',
- 'Combination of the connecting Marcelle (30 m²) and Pierre (22 m²) rooms forming a 52 m² family suite. 2 bedrooms, 2 bathrooms, 2 terraces. Up to 3 extra beds available. Ideal for families.',
+ 'Combinaison des 2 chambres communicantes Marcelle (30 m²) et Pierre (22 m²) pour former une suite familiale de 52 m². 2 chambres, 2 salles de bain, 2 terrasses. Jusqu''à 3 lits d''appoint possibles (115 €/nuit/lit). Supplément enfant : 150 €/nuit. Idéale pour les familles. Les lits ne sont PAS séparables en twin.',
+ 'Combination of the connecting Marcelle (30 m²) and Pierre (22 m²) rooms forming a 52 m² family suite. 2 bedrooms, 2 bathrooms, 2 terraces. Up to 3 extra beds available (€115/night/bed). Child supplement: €150/night. Ideal for families. Beds are NOT twinable.',
  'Familial, spacieux, double espace, 2 ambiances',
  '["Tout Marcelle + tout Pierre", "2 salles de bain", "2 terrasses", "Jusqu''à 3 lits d''appoint"]',
  FALSE, FALSE, NULL,
@@ -600,24 +606,19 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
  0, 'Inclus', TRUE, 2),
 
 ('kayaks', 'Kayaks', 'Kayaks', 'activity',
- 'Kayaks en libre-service. Dock à 20 secondes à pied de l''hôtel. Idéal pour rejoindre l''Île Pinel (20-25 min de pagaie).',
- 'Complimentary kayaks. Dock 20 seconds walk from hotel. Perfect for paddling to Pinel Island (20-25 min).',
+ 'Kayaks en libre-service. Petit dock à 1 minute à pied de l''hôtel. Idéal pour rejoindre l''Île Pinel (20-25 min de pagaie).',
+ 'Complimentary kayaks. Small dock 1 minute walk from hotel. Perfect for paddling to Pinel Island (20-25 min).',
  0, 'Inclus', TRUE, 3),
 
 ('paddle', 'Stand-up paddle (SUP)', 'Stand-up paddle (SUP)', 'activity',
- 'Planches de paddle en libre-service au dock de l''hôtel.',
- 'Complimentary stand-up paddle boards at hotel dock.',
+ 'Planches de paddle en libre-service au petit dock de l''hôtel (1 min à pied).',
+ 'Complimentary stand-up paddle boards at the hotel''s small dock (1 min walk).',
  0, 'Inclus', TRUE, 4),
 
 ('snorkeling', 'Équipement de snorkeling', 'Snorkeling gear', 'activity',
  'Masques, tubas et palmes disponibles gratuitement.',
  'Masks, snorkels and fins available free of charge.',
  0, 'Inclus', TRUE, 5),
-
-('bikes', 'Vélos', 'Bikes', 'activity',
- 'Vélos en prêt gratuit pour explorer les environs.',
- 'Complimentary bikes to explore the surroundings.',
- 0, 'Inclus', TRUE, 6),
 
 ('wifi', 'WiFi haut débit', 'High-speed WiFi', 'room_extra',
  'WiFi gratuit dans toutes les chambres et espaces communs.',
@@ -656,8 +657,8 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
 
 -- PAYANTS
 ('shuttle', 'Navette aéroport / port', 'Airport / port shuttle', 'transport',
- 'Transfert privé depuis/vers l''aéroport Princess Juliana (SXM) ou le port de Marigot.',
- 'Private transfer to/from Princess Juliana Airport (SXM) or Marigot port.',
+ 'Transfert privé depuis/vers l''aéroport Princess Juliana (SXM, environ 1h de route) ou l''aéroport Grand Case (SFG, 10 min) ou le port de Marigot.',
+ 'Private transfer to/from Princess Juliana Airport (SXM, approx. 1 hour drive) or Grand Case Airport (SFG, 10 min) or Marigot port.',
  75.00, 'Par trajet', FALSE, 20),
 
 ('massage-solo', 'Massage individuel (1h)', 'Individual massage (1h)', 'wellness',
@@ -733,97 +734,82 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
 ('honeymoon', 'Forfait Lune de Miel', 'Honeymoon package', 'event',
  'Package personnalisé avec champagne, douceurs sucrées, bouquet de fleurs. Conçu sur mesure avec les mariés.',
  'Customized package with champagne, sweet treats, flower bouquet. Designed with you, for you.',
- 896.00, 'À partir de, par nuit (Suite René)', FALSE, 35),
+ 896.00, 'À partir de, par nuit (Suite Deluxe vue mer panoramique)', FALSE, 35),
 
 ('pilates', 'Cours de Pilates', 'Pilates class', 'wellness',
  'Cours de Pilates disponibles à l''hôtel.',
  'Pilates classes available at the hotel.',
  0, 'Sur demande', FALSE, 36);
 -- ╔══════════════════════════════════════════════════════════════════╗
--- ║  SEED — Restaurants (66 restaurants)                            ║
+-- ║  SEED — Restaurants (vrais restaurants validés par Marion)    ║
 -- ╚══════════════════════════════════════════════════════════════════╝
 
-INSERT INTO restaurants (name, area, cuisine, price, avg_price_eur, phone, website, rating, hours, closed_day, reservation_required, dress_code, specialties, vegetarian_options, ambiance, distance_km, driving_time_min, best_for, is_partner, sort_order) VALUES
+-- Restaurants confirmés dans les vrais emails de Marion & Emmanuel.
+-- IMPORTANT : Aucun restaurant n'est accessible à pied depuis l'hôtel.
+-- Tous nécessitent une voiture (5-25 min).
 
--- ═══ CUL DE SAC / MONT VERNON (1-5 min) ═══
-('La Villa Hibiscus', 'Cul de Sac', 'Gastronomique française', '€€€€', 90, NULL, NULL, 4.9, 'Mar-Sam dîner', 'Dimanche, Lundi', TRUE, 'smart casual', 'Menus dégustation du Chef Bastian Schenk (formé chez Joël Robuchon, Anne-Sophie Pic)', TRUE, 'Intime, gastronomique, jardin tropical', 1.5, 3, ARRAY['romantic', 'honeymoon', 'french', 'special_occasion'], TRUE, 1),
-('Sol e Luna', 'Cul de Sac', 'Gastronomique française / Créole', '€€€', 70, '+590 590 29 08 29', NULL, 4.8, 'Dîner', NULL, TRUE, 'smart casual', 'Cuisine française revisitée, produits locaux', TRUE, 'Élégant, vue mer', 1.5, 3, ARRAY['romantic', 'french', 'seafood'], TRUE, 2),
-('Le Taitu', 'Cul de Sac', 'Français-Créole', '€€', 35, '+590 590 87 43 23', NULL, 4.7, 'Lun-Sam 11h45-14h15 & 18h30-21h30', 'Dimanche', FALSE, 'casual', 'Cuisine locale fraîche, ambiance décontractée', TRUE, 'Décontracté, local', 1.0, 2, ARRAY['casual', 'local', 'budget'], FALSE, 3),
-('Chez Hercule', 'Cul de Sac', 'Créole / BBQ', '€', 15, NULL, NULL, 4.5, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Grillades créoles, poisson frais', FALSE, 'Local, simple, authentique', 1.0, 2, ARRAY['budget', 'local', 'family'], FALSE, 4),
-('Lulu''s Corner', 'Mont Vernon', 'Café / Brunch', '€', 12, NULL, NULL, 4.6, 'Petit-déjeuner et déjeuner', NULL, FALSE, 'casual', 'Brunch, smoothies, bowls', TRUE, 'Cozy, healthy', 2.0, 4, ARRAY['budget', 'family', 'brunch'], FALSE, 5),
-('SAO Asian Factory', 'Mont Vernon', 'Asiatique fusion', '€€', 30, NULL, NULL, 4.3, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Sushi, wok, noodles', TRUE, 'Moderne, asiatique', 2.0, 4, ARRAY['casual', 'family'], FALSE, 6),
-('Papadan Pizza', 'Mont Vernon', 'Pizza / Italien', '€', 15, NULL, NULL, 4.4, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Pizzas artisanales', TRUE, 'Familial, décontracté', 2.0, 4, ARRAY['budget', 'family'], FALSE, 7),
+INSERT INTO restaurants (name, area, cuisine, price, avg_price_eur, phone, reservation_required, specialties, ambiance, distance_km, driving_time_min, walkable, access_note_fr, access_note_en, best_for, description_fr, description_en, is_partner, sort_order) VALUES
 
--- ═══ ORIENT BAY (5 min) ═══
-('L''Atelier', 'Orient Bay', 'Steakhouse français', '€€€', 60, '+590 690 22 10 22', 'latelier-sxm.com', 4.7, 'Tous les jours 17h30-22h30', NULL, TRUE, 'smart casual', 'Viandes maturées, côte de boeuf, tartares', FALSE, 'Chic, terrasse extérieure', 2.5, 5, ARRAY['romantic', 'meat', 'special_occasion'], FALSE, 10),
-('Maison Mère', 'Orient Bay', 'Bistrot français', '€€', 40, '+590 690 38 11 39', 'maisonmere.restaurant', 4.6, 'Mer-Lun 18h-22h30', 'Mardi', TRUE, 'smart casual', 'Cuisine française bistrot, cocktails primés, ambiance coloniale', TRUE, 'Colonial, cocktails, élégant', 2.5, 5, ARRAY['romantic', 'french', 'cocktails'], TRUE, 11),
-('Kontiki Beach', 'Orient Bay', 'Franco-asiatique fusion', '€€', 40, '+590 690 66 24 25', 'kontiki.restaurant', 4.3, 'Tous les jours 9h-18h', NULL, FALSE, 'casual beach', 'Fusion, beach club, DJ le dimanche', TRUE, 'Beach club, pieds dans le sable', 2.0, 5, ARRAY['beach', 'family', 'sunset'], FALSE, 12),
-('KKO Beach', 'Orient Bay', 'Fusion / Nikkei', '€€', 40, '+590 690 75 41 39', NULL, 4.4, 'Tous les jours', NULL, FALSE, 'casual beach', 'Cuisine fusion, DJ sessions le dimanche', TRUE, 'Beach club tendance, DJ', 2.0, 5, ARRAY['beach', 'nightlife', 'sunset'], FALSE, 13),
-('Coco Beach', 'Orient Bay', 'Gourmet beach', '€€', 40, NULL, 'cocobeach.restaurant', 4.4, 'Lun, Jeu-Dim 9h30-17h, Ven dîner 19h-21h30', 'Mardi, Mercredi', FALSE, 'casual beach', 'Cuisine beach gourmet, brunch', TRUE, 'Beach chic, pieds dans le sable', 2.0, 5, ARRAY['beach', 'brunch', 'family'], FALSE, 14),
-('Bikini Beach', 'Orient Bay', 'Beach casual', '€€', 30, NULL, NULL, 4.2, 'Tous les jours 9h-21h30', NULL, FALSE, 'casual beach', 'Burgers, salades, poisson grillé', TRUE, 'Décontracté, vue mer', 2.0, 5, ARRAY['beach', 'family', 'casual', 'budget'], FALSE, 15),
-('Wai Beach', 'Orient Bay', 'Beach dining haut de gamme', '€€€', 60, NULL, NULL, 4.5, 'Tous les jours', NULL, TRUE, 'smart casual', 'Gastronomie beach, musique live vendredi', FALSE, 'Haut de gamme, live music', 2.0, 5, ARRAY['romantic', 'beach', 'sunset', 'nightlife'], FALSE, 16),
-('Joa Beach', 'Orient Bay', 'Beach club', '€€', 35, NULL, NULL, 4.3, 'Tous les jours', NULL, FALSE, 'casual beach', 'Beach club avec transats', TRUE, 'Tendance, musique', 2.0, 5, ARRAY['beach', 'nightlife'], FALSE, 17),
-('Orange Fever', 'Orient Bay', 'Beach bar', '€', 20, NULL, NULL, 4.2, 'Tous les jours', NULL, FALSE, 'casual beach', 'Cocktails, snacks, ambiance', TRUE, 'Décontracté, fun', 2.0, 5, ARRAY['beach', 'budget', 'nightlife'], FALSE, 18),
-('Le Piment', 'Orient Bay', 'Créole', '€€', 30, NULL, NULL, 4.5, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Cuisine créole authentique', TRUE, 'Local, chaleureux', 2.5, 5, ARRAY['local', 'casual'], FALSE, 19),
+-- Restaurants confirmés par Marion (email Linda Thornton, fév. 2026)
+('Ristorante Del Arti', 'Orient Bay', 'italian', '€€€', 55,
+ '+590 690 73 96 33', TRUE,
+ 'Cuisine italienne gastronomique',
+ 'Élégant, en plein air',
+ 3.5, 8, FALSE,
+ 'Environ 8 minutes en voiture depuis l''hôtel.',
+ 'About 8 minutes drive from the hotel.',
+ ARRAY['romantic', 'anniversary', 'gourmet', 'outdoor'],
+ 'Restaurant italien recommandé par Marion pour les dîners spéciaux et anniversaires. Tables en extérieur disponibles.',
+ 'Italian restaurant recommended by Marion for special dinners and anniversaries. Outdoor tables available.',
+ FALSE, 1),
 
--- ═══ GRAND CASE — Fine Dining (10 min) ═══
-('Le Pressoir', 'Grand Case', 'Gastronomique française', '€€€€', 100, '+590 690 52 75 95', 'lepressoirsxm.com', 4.6, 'Lun-Sam dîner, 1er service 17h, dernier 22h', 'Dimanche', TRUE, 'smart casual', '"Caribbean Restaurant of the Year" 4 ans de suite. Cuisine française gastronomique dans une maison créole historique.', TRUE, 'Maison créole historique, romantique, élégant', 6.0, 10, ARRAY['romantic', 'honeymoon', 'french', 'special_occasion', 'seafood'], TRUE, 20),
-('Le Cottage', 'Grand Case', 'Bistrot chic français', '€€€', 65, '+590 690 56 32 69', 'lecottagesxm.com', 4.7, 'Lun-Sam 18h-22h', 'Dimanche', TRUE, 'smart casual', 'Cuisine française bistrot chic, produits frais', TRUE, 'Chic, intime, terrasse', 6.0, 10, ARRAY['romantic', 'french'], FALSE, 21),
-('Le Tastevin', 'Grand Case', 'Gastronomique française', '€€€', 70, NULL, NULL, 4.6, 'Dîner', NULL, TRUE, 'smart casual', 'Haute cuisine française, cave à vins', TRUE, 'Gastronomique, raffiné', 6.0, 10, ARRAY['romantic', 'french', 'special_occasion'], FALSE, 22),
-('L''Auberge Gourmande', 'Grand Case', 'Gastronomique française', '€€€', 65, NULL, NULL, 4.5, 'Dîner', NULL, TRUE, 'smart casual', 'Classiques français revisités', TRUE, 'Traditionnel, élégant', 6.0, 10, ARRAY['romantic', 'french'], FALSE, 23),
-('Spiga', 'Grand Case', 'Italien créatif', '€€€', 65, '+590 590 52 47 83', 'spigasxm.com', 4.7, 'Lun-Sam 18h-22h', 'Dimanche', TRUE, 'smart casual', 'Pâtes fraîches maison, cuisine italienne créative', TRUE, 'Cour intérieure, romantique, italien raffiné', 6.0, 10, ARRAY['romantic', 'italian', 'special_occasion'], FALSE, 24),
-('Ocean 82', 'Grand Case', 'Seafood français', '€€€', 70, NULL, 'ocean82.fr', 4.6, 'Dîner', NULL, TRUE, 'smart casual', 'Fruits de mer, poissons, vue mer', TRUE, 'Vue mer, terrasse, élégant', 6.0, 10, ARRAY['romantic', 'seafood', 'sunset'], FALSE, 25),
-('Bistrot Caraïbes', 'Grand Case', 'Français-Caribéen', '€€€', 60, '+590 590 29 08 29', 'bistrot-caraibes.com', 4.7, 'Lun-Dim 18h-22h', NULL, TRUE, 'smart casual', 'Fusion franco-caribéenne, produits locaux', TRUE, 'Terrasse, vue mer, chaleureux', 6.0, 10, ARRAY['romantic', 'french', 'seafood', 'sunset'], TRUE, 26),
-('La Villa', 'Grand Case', 'Français-Caribéen élevé', '€€€', 65, '+590 690 50 12 04', 'lavillasxm.com', 4.7, 'Dîner à partir de 17h', 'Mercredi', TRUE, 'smart casual', 'Cuisine française élevée, ambiance raffinée', TRUE, 'Raffiné, vue mer', 6.0, 10, ARRAY['romantic', 'french', 'special_occasion'], FALSE, 27),
-('L''Effet Mer', 'Grand Case', 'Seafood français', '€€€', 55, NULL, NULL, 4.5, 'Dîner', NULL, TRUE, 'smart casual', 'Fruits de mer frais, ambiance maritime', TRUE, 'Maritime, front de mer', 6.0, 10, ARRAY['seafood', 'romantic'], FALSE, 28),
+('Le Tropicana', 'Orient Bay', 'french', '€€', 40,
+ '+590 590 87 79 07', TRUE,
+ 'Cuisine française et créole',
+ 'Décontracté, convivial',
+ 3.5, 8, FALSE,
+ 'Environ 8 minutes en voiture depuis l''hôtel.',
+ 'About 8 minutes drive from the hotel.',
+ ARRAY['lunch', 'casual', 'returning_guests'],
+ 'Restaurant apprécié des habitués. Recommandé par Marion pour le déjeuner. Salle intérieure et terrasse.',
+ 'A favorite among returning guests. Recommended by Marion for lunch. Indoor and terrace seating.',
+ FALSE, 2),
 
--- ═══ GRAND CASE — Casual & Bars ═══
-('Calmos Café', 'Grand Case', 'Beach bar & grill', '€€', 30, NULL, NULL, 4.8, 'Toute la journée', NULL, FALSE, 'casual beach', 'Cocktails, grillades, coucher de soleil légendaire', TRUE, 'Pieds dans le sable, sunset, décontracté', 6.0, 10, ARRAY['sunset', 'beach', 'casual', 'cocktails'], FALSE, 30),
-('Rainbow Café', 'Grand Case', 'Bar restaurant', '€€', 25, NULL, NULL, 4.4, 'Toute la journée', NULL, FALSE, 'casual', 'Cocktails, ambiance festive', TRUE, 'Festif, coloré', 6.0, 10, ARRAY['nightlife', 'casual'], FALSE, 31),
-('Nice SXM', 'Grand Case', 'Français', '€€', 30, NULL, NULL, 4.3, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Cuisine française simple et bonne', TRUE, 'Décontracté', 6.0, 10, ARRAY['casual', 'french', 'budget'], FALSE, 32),
-('Blue Martini', 'Grand Case', 'Bar cocktails', '€€', 25, NULL, NULL, 4.4, 'Soirée', NULL, FALSE, 'casual', 'Cocktails, musique', FALSE, 'Bar ambiance, soirée', 6.0, 10, ARRAY['nightlife', 'cocktails'], FALSE, 33),
+('Le Terrasse Rooftop Restaurant', 'Marigot', 'french', '€€€', 60,
+ '+590 690 66 99 99', TRUE,
+ 'Cuisine gastronomique, vue mer',
+ 'Rooftop, vue sur l''eau, élégant',
+ 9.0, 15, FALSE,
+ 'Environ 15 minutes en voiture depuis l''hôtel.',
+ 'About 15 minutes drive from the hotel.',
+ ARRAY['romantic', 'sunset', 'waterside', 'anniversary', 'gourmet'],
+ 'Restaurant rooftop avec vue sur l''eau. Tables au bord de l''eau demandées. Idéal pour un dîner romantique.',
+ 'Rooftop restaurant with water view. Waterside tables available on request. Ideal for a romantic dinner.',
+ FALSE, 3),
 
--- ═══ GRAND CASE — Lolos (BBQ créole, €8-14/assiette) ═══
-('Sky''s the Limit', 'Grand Case', 'BBQ Créole (Lolo)', '€', 12, NULL, NULL, 4.7, 'Soirée', NULL, FALSE, 'casual', 'Ribs, poulet grillé, langouste, sides créoles. Le plus célèbre des lolos.', FALSE, 'Extérieur, tables en bois, musique, authentique', 6.0, 10, ARRAY['budget', 'local', 'family', 'must_try'], FALSE, 35),
-('Talk of the Town', 'Grand Case', 'BBQ Créole (Lolo)', '€', 12, NULL, NULL, 4.6, 'Soirée', NULL, FALSE, 'casual', 'BBQ ribs, poulet, poisson grillé, lobster', FALSE, 'Local, convivial, file d''attente le soir', 6.0, 10, ARRAY['budget', 'local', 'family'], FALSE, 36),
-('Rib Shack', 'Grand Case', 'BBQ Créole (Lolo)', '€', 12, NULL, NULL, 4.5, 'Soirée', NULL, FALSE, 'casual', 'Ribs fumées, BBQ', FALSE, 'Authentique, fumoir', 6.0, 10, ARRAY['budget', 'local', 'meat'], FALSE, 37),
-('Au Coin des Amis', 'Grand Case', 'BBQ Créole (Lolo)', '€', 12, NULL, NULL, 4.4, 'Soirée', NULL, FALSE, 'casual', 'Grillades créoles', FALSE, 'Local, simple', 6.0, 10, ARRAY['budget', 'local'], FALSE, 38),
-('Scooby''s', 'Grand Case', 'BBQ Créole (Lolo)', '€', 10, NULL, NULL, 4.3, 'Soirée', NULL, FALSE, 'casual', 'BBQ pas cher, ambiance locale', FALSE, 'Très local, prix mini', 6.0, 10, ARRAY['budget', 'local'], FALSE, 39),
-('Le Ti Coin Créole', 'Grand Case', 'Créole traditionnel', '€', 15, NULL, NULL, 4.5, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Plats créoles traditionnels', TRUE, 'Authentique, familial', 6.0, 10, ARRAY['budget', 'local', 'family'], FALSE, 40),
+('Lulu''s Corner', 'Grand Case', 'french', '€€', 35,
+ '+590 690 77 87 81', TRUE,
+ 'Cuisine française bistrot',
+ 'Chaleureux, climatisé',
+ 6.0, 10, FALSE,
+ 'Environ 10 minutes en voiture depuis l''hôtel.',
+ 'About 10 minutes drive from the hotel.',
+ ARRAY['lunch', 'casual', 'family'],
+ 'Bistrot à Grand Case recommandé par Marion pour le déjeuner. Salle climatisée et tables ombragées disponibles.',
+ 'Grand Case bistro recommended by Marion for lunch. Air-conditioned and shaded tables available.',
+ FALSE, 4),
 
--- ═══ MARIGOT (15 min) ═══
-('Le Tropicana', 'Marigot', 'Français élégant', '€€€', 45, '+590 590 87 79 07', NULL, 4.6, 'Mar-Sam 12h-14h30 & 18h-21h30', 'Dimanche, Lundi', TRUE, 'smart casual', '#3 de Marigot sur TripAdvisor. Restaurant préféré de Linda Thornton (cliente régulière).', TRUE, 'Élégant, front de mer', 9.0, 15, ARRAY['romantic', 'french', 'seafood'], TRUE, 41),
-('Le Bistro de la Mer', 'Marigot', 'Français-Créole / Pizzas', '€€', 25, '+590 590 29 30 03', NULL, 3.8, 'Tous les jours 9h-22h', NULL, FALSE, 'casual', 'Cuisine franco-créole, pizzas, front de mer Marigot', TRUE, 'Front de mer, décontracté', 9.0, 15, ARRAY['casual', 'family', 'seafood', 'budget'], TRUE, 42),
-('Enoch''s Place', 'Marigot', 'Créole local', '€', 12, NULL, NULL, 4.7, 'Petit-déjeuner et déjeuner uniquement', NULL, FALSE, 'casual', 'Marché de Marigot. Incontournable local. Poisson grillé, lambi.', FALSE, 'Marché, local, authentique', 9.0, 15, ARRAY['budget', 'local', 'must_try', 'brunch'], FALSE, 43),
-('La Belle Époque', 'Marigot', 'Français classique', '€€€', 50, NULL, NULL, 4.4, 'Déjeuner et dîner', NULL, TRUE, 'smart casual', 'Cuisine française classique en bord de mer', TRUE, 'Classique, front de mer', 9.0, 15, ARRAY['romantic', 'french'], FALSE, 44),
-('Le Marocain', 'Marigot', 'Marocain', '€€', 30, NULL, NULL, 4.3, 'Dîner', NULL, TRUE, 'casual', 'Tajines, couscous, pastilla', TRUE, 'Décor marocain, dépaysant', 9.0, 15, ARRAY['casual', 'exotic'], FALSE, 45),
-('Rosemary''s', 'Marigot', 'Créole / International', '€€', 25, NULL, NULL, 4.5, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Cuisine créole et internationale', TRUE, 'Local, chaleureux', 9.0, 15, ARRAY['casual', 'local', 'family'], FALSE, 46),
-
--- ═══ ANSE MARCEL (10 min) ═══
-('Le Bistro du Port', 'Anse Marcel', 'Français / Marina', '€€', 35, NULL, NULL, 4.3, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Cuisine française face à la marina', TRUE, 'Marina, bateaux, calme', 5.0, 10, ARRAY['casual', 'family', 'seafood'], FALSE, 50),
-
--- ═══ FRIAR''S BAY (12 min) ═══
-('Kali''s Beach Bar', 'Friar''s Bay', 'BBQ / Créole', '€', 15, NULL, NULL, 4.6, 'Toute la journée', NULL, FALSE, 'casual beach', 'Légendaire. Bush Rum maison. Full Moon Party mensuelle (feu de camp, reggae).', FALSE, 'Légendaire, pieds dans le sable, bohème', 10.0, 15, ARRAY['beach', 'nightlife', 'local', 'must_try', 'sunset'], FALSE, 55),
-('978 Beach Lounge', 'Friar''s Bay', 'Caribéen fusion', '€€', 30, NULL, NULL, 4.4, 'Toute la journée', NULL, FALSE, 'casual beach', 'Cuisine caribéenne fusion, cocktails', TRUE, 'Tendance, beach, moderne', 10.0, 15, ARRAY['beach', 'casual', 'cocktails'], FALSE, 56),
-('Friar''s Bay Beach Café', 'Friar''s Bay', 'Français', '€€', 30, NULL, NULL, 4.3, 'Déjeuner', NULL, FALSE, 'casual beach', 'Classique français sur le sable', TRUE, 'Pieds dans le sable, classique', 10.0, 15, ARRAY['beach', 'french', 'casual'], FALSE, 57),
-
--- ═══ TERRES BASSES / BAIE LONGUE (25 min) ═══
-('La Samanna - L''Oursin', 'Baie Longue', 'Gastronomique méditerranéen', '€€€€', 120, NULL, NULL, 4.5, 'Dîner', NULL, TRUE, 'smart casual', 'Restaurant gastronomique du Belmond La Samanna. Vue mer spectaculaire.', TRUE, 'Luxe absolu, vue mer, Belmond', 17.0, 25, ARRAY['romantic', 'honeymoon', 'special_occasion', 'french', 'sunset'], TRUE, 60),
-('La Samanna - Laplaj', 'Baie Longue', 'Beach fusion', '€€€', 60, NULL, NULL, 4.4, 'Déjeuner', NULL, TRUE, 'casual beach', 'Déjeuner pieds dans le sable au Belmond La Samanna', TRUE, 'Luxe, plage, Belmond', 17.0, 25, ARRAY['beach', 'romantic', 'special_occasion'], TRUE, 61),
-
--- ═══ SIMPSON BAY / MAHO (25 min) ═══
-('SkipJack''s', 'Simpson Bay', 'Seafood / Grill', '€€', 35, NULL, NULL, 4.5, 'Déjeuner et dîner', NULL, FALSE, 'casual', 'Poisson frais du jour, ambiance marina', TRUE, 'Marina, décontracté', 17.0, 25, ARRAY['seafood', 'casual', 'family'], FALSE, 65),
-('IZI Ristorante', 'Maho', 'Italien', '€€€', 50, NULL, NULL, 4.4, 'Dîner', NULL, TRUE, 'smart casual', 'Cuisine italienne haut de gamme', TRUE, 'Élégant, italien', 20.0, 28, ARRAY['italian', 'romantic'], FALSE, 66),
-('Sunset Bar & Grill', 'Maho', 'Grill / Bar', '€€', 25, NULL, NULL, 4.3, 'Toute la journée', NULL, FALSE, 'casual', 'Le bar emblématique de Maho Beach pour voir les avions atterrir', TRUE, 'Avions, iconique, fun', 20.0, 28, ARRAY['must_try', 'family', 'casual', 'nightlife'], FALSE, 67),
-('Bamboo House', 'Maho', 'Asiatique', '€€', 30, NULL, NULL, 4.2, 'Dîner', NULL, FALSE, 'casual', 'Cuisine asiatique, sushis', TRUE, 'Moderne, asiatique', 20.0, 28, ARRAY['casual', 'exotic'], FALSE, 68),
-
--- ═══ PHILIPSBURG (20 min) ═══
-('Ocean Lounge', 'Philipsburg', 'International', '€€€', 50, NULL, NULL, 4.4, 'Déjeuner et dîner', NULL, TRUE, 'smart casual', 'Vue sur Great Bay, boardwalk', TRUE, 'Vue mer, boardwalk, élégant', 15.0, 22, ARRAY['romantic', 'seafood', 'sunset'], FALSE, 70),
-('Lazy Lizard', 'Philipsburg', 'Beach bar', '€', 15, NULL, NULL, 4.5, 'Toute la journée', NULL, FALSE, 'casual beach', 'Beach bar iconique du boardwalk', TRUE, 'Boardwalk, décontracté, fun', 15.0, 22, ARRAY['beach', 'budget', 'casual'], FALSE, 71),
-
--- ═══ PINEL ISLAND (5 min bateau) ═══
-('Le Karibuni', 'Île Pinel', 'Créole / Seafood', '€€', 30, NULL, NULL, 4.5, '10h-16h', NULL, FALSE, 'casual beach', 'Restaurant sur l''île Pinel. Langouste grillée, pieds dans le sable, vue Anguilla.', FALSE, 'Île déserte, pieds dans le sable, paradisiaque', 1.7, NULL, ARRAY['beach', 'seafood', 'must_try', 'romantic'], FALSE, 75),
-('Yellow Beach', 'Île Pinel', 'Créole / Beach', '€€', 25, NULL, NULL, 4.4, '10h-16h', NULL, FALSE, 'casual beach', 'Second restaurant de l''île Pinel. Vue sur St-Barth.', FALSE, 'Île, plage, vue St-Barth', 1.7, NULL, ARRAY['beach', 'budget', 'family'], FALSE, 76);
+('Bistrot Caraïbes', 'Grand Case', 'french', '€€€', 50,
+ NULL, TRUE,
+ 'Gastronomie française caribéenne',
+ 'Élégant, boulevard de Grand Case',
+ 6.0, 10, FALSE,
+ 'Environ 10 minutes en voiture depuis l''hôtel.',
+ 'About 10 minutes drive from the hotel.',
+ ARRAY['gourmet', 'romantic', 'anniversary'],
+ 'Restaurant gastronomique sur le boulevard de Grand Case. Recommandé par les clients et Marion.',
+ 'Gourmet restaurant on Grand Case boulevard. Recommended by guests and Marion.',
+ FALSE, 5);
 -- ╔══════════════════════════════════════════════════════════════════╗
 -- ║  SEED — Plages de Saint-Martin (20+)                           ║
 -- ╚══════════════════════════════════════════════════════════════════╝
@@ -834,10 +820,10 @@ INSERT INTO beaches (name, side, distance_km, driving_time_min, walking_time_min
 ('Cul de Sac Bay', 'french', 0, 0, 0,
  'Baie calme, dock de l''hôtel, départ kayak/paddle vers Pinel', 'Dock hôtel, kayaks gratuits, paddle gratuits', 'Calme',
  ARRAY['kayak', 'paddle', 'snorkeling', 'calm'],
- 'La baie de l''hôtel. Dock à 20 secondes à pied pour les kayaks et paddles. Départ vers l''île Pinel.',
- 'The hotel''s own bay. Dock 20 seconds walk for kayaks and paddleboards. Departure point for Pinel Island.', 1),
+ 'La baie de l''hôtel. Petit dock à 1 minute à pied pour les kayaks et paddles. Le ferry vers Pinel part d''un autre dock (2-3 min en voiture ou 15 min à pied).',
+ 'The hotel''s own bay. Small dock 1 minute walk for kayaks and paddleboards. The ferry to Pinel departs from a different dock (2-3 min drive or 15 min walk).', 1),
 
-('Orient Bay Beach', 'french', 1.9, 5, 10,
+('Orient Bay Beach', 'french', 1.9, 5, 18,
  'La plus célèbre de l''île. 2 km de sable blanc, beach clubs, sports nautiques', 'Beach clubs, transats, restaurants, jet ski, kitesurf, parasailing, toilettes, douches', 'Animé',
  ARRAY['beach_clubs', 'water_sports', 'nightlife', 'family', 'snorkeling'],
  'Le "Saint-Tropez des Caraïbes". Plage la plus animée de l''île avec beach clubs (Kontiki, KKO, Bikini Beach, Wai Beach), restaurants, sports nautiques. Section naturiste au sud.',
@@ -1144,7 +1130,7 @@ INSERT INTO practical_info (category, name, address, phone, distance_km, driving
 ('health', 'Pharmacie Cul de Sac', 'Route de Cul de Sac', NULL, 1.5, 2, 'Lun-Sam 8h-19h', 'Pharmacie la plus proche de l''hôtel', 11),
 
 -- Aéroports
-('airport', 'Aéroport Princess Juliana (SXM)', 'Simpson Bay, côté hollandais', NULL, 15.0, 25, '24/7', 'Aéroport international principal. 27+ compagnies aériennes. Vols directs USA, Europe, Caraïbes. Shuttle hôtel : 75€.', 20),
+('airport', 'Aéroport Princess Juliana (SXM)', 'Simpson Bay, côté hollandais', NULL, 30.0, 60, '24/7', 'Aéroport international principal. 27+ compagnies aériennes. Vols directs USA, Europe, Caraïbes. Compter environ 1 heure de route depuis l''hôtel. Shuttle hôtel : 75€.', 20),
 ('airport', 'Aéroport Grand Case-Espérance (SFG)', 'Grand Case, côté français', NULL, 6.0, 10, 'Horaires de vol', 'Aéroport régional. Vols vers St-Barth (15 min), Guadeloupe. Pratique pour arrivées inter-îles.', 21),
 
 -- Transport
@@ -1152,6 +1138,7 @@ INSERT INTO practical_info (category, name, address, phone, distance_km, driving
 ('transport', 'Ferry Marigot → St-Barth (Voyager)', 'Port de Marigot', NULL, 9.0, 15, 'Jusqu''à 5 départs/jour', 'ECO 108€ A/R, SMART 131€, BUSINESS 162€. 1h traversée.', 26),
 ('transport', 'Taxis', 'Partout sur l''île', NULL, NULL, NULL, '24/7', 'Tarifs fixes par zone. Supplément 25% 22h-minuit, 50% minuit-6h. Pas de Uber/Lyft.', 27),
 ('transport', 'Location de voitures', 'Aéroports et hôtels', NULL, NULL, NULL, 'Variable', 'À partir de ~20$/jour. Conduite à droite. Permis français ou international.', 28),
+('transport', 'Pas de Uber / VTC', NULL, NULL, NULL, NULL, NULL, 'Il n''y a pas de Uber ni de VTC sur l''île. Uniquement des taxis (tarifs fixes par zone) et des loueurs de voitures.', 29),
 
 -- Commerce
 ('shopping', 'Supermarché Gocci', 'Route de Cul de Sac', NULL, 1.5, 2, 'Lun-Sam', 'Supermarché moderne le plus proche de l''hôtel.', 30),
@@ -1162,11 +1149,14 @@ INSERT INTO practical_info (category, name, address, phone, distance_km, driving
 ('bank', 'Distributeur ATM le plus proche', 'Cul de Sac / Grand Case', NULL, 2.0, 4, '24/7', 'ATMs français : EUR. ATMs hollandais : USD. La plupart des commerces acceptent les deux.', 35),
 
 -- Divers
+-- Livraison repas
+('dining', 'Delifood Island SXM', NULL, NULL, NULL, NULL, NULL, 'Service de livraison de repas, le UberEats de Saint-Martin. Possibilité de se faire livrer le soir à l''hôtel. Site : https://www.delifood-sxm.com', 50),
+
 ('info', 'Fuseau horaire', NULL, NULL, NULL, NULL, NULL, 'AST (Atlantic Standard Time) = UTC-4. Pas de changement d''heure.', 40),
 ('info', 'Monnaie', NULL, NULL, NULL, NULL, NULL, 'EUR côté français, USD/ANG côté hollandais. Les deux acceptés presque partout. Cartes Visa/Mastercard largement acceptées.', 41),
 ('info', 'Langues', NULL, NULL, NULL, NULL, NULL, 'Français (côté FR), anglais (côté NL), créole, espagnol. L''anglais est compris partout.', 42),
 ('info', 'Électricité', NULL, NULL, NULL, NULL, NULL, '220V côté français (prises EU), 110V côté hollandais (prises US). L''hôtel fournit prises USB-C et USB-D.', 43),
-('info', 'Saison cyclonique', NULL, NULL, NULL, NULL, 'Juin - Novembre', 'Pic : août-octobre. L''hôtel ferme mi-août à octobre.', 44),
+('info', 'Saison cyclonique', NULL, NULL, NULL, NULL, 'Juin - Novembre', 'Pic : août-octobre. L''hôtel ferme du 15 août au 30 septembre. Réouverture le 1er octobre.', 44),
 ('info', 'Meilleure période', NULL, NULL, NULL, NULL, 'Décembre - Avril', 'Haute saison. Temps sec, 27-30°C. Février-mars idéal.', 45),
 ('info', 'Pourboires', NULL, NULL, NULL, NULL, NULL, 'Côté FR : service compris (15%), pourboire supplémentaire apprécié. Côté NL : style américain, 15-20% attendu.', 46);
 
@@ -1198,8 +1188,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 4),
 
 ('Comment rejoindre l''île Pinel ?', 'How do I get to Pinel Island?',
- 'Depuis l''hôtel, c''est très simple ! Le dock est à 20 secondes à pied. Option 1 : Ferry (10€ A/R, toutes les 30 min, 5 min de traversée). Option 2 : Nos kayaks gratuits (20-25 min de pagaie). On recommande d''y aller le matin pour le snorkeling avec les tortues.',
- 'From the hotel, it''s very easy! The dock is a 20-second walk. Option 1: Ferry (€10 round trip, every 30 min, 5-min crossing). Option 2: Our free kayaks (20-25 min paddle). We recommend going in the morning for turtle snorkeling.',
+ 'Deux options ! Option 1 : Le petit ferry depuis le dock de Cul de Sac (2-3 min en voiture ou 15 min à pied depuis l''hôtel, 10€ A/R, toutes les 30 min, 5 min de traversée). Option 2 : Nos kayaks gratuits depuis le petit dock en face de l''hôtel (1 min à pied, 20-25 min de pagaie). On recommande d''y aller le matin pour le snorkeling avec les tortues.',
+ 'Two options! Option 1: The small ferry from the Cul de Sac dock (2-3 min drive or 15 min walk from the hotel, €10 round trip, every 30 min, 5-min crossing). Option 2: Our free kayaks from the small dock in front of the hotel (1 min walk, 20-25 min paddle). We recommend going in the morning for turtle snorkeling.',
  'activity', 5),
 
 ('Quelle est la politique d''annulation ?', 'What is the cancellation policy?',
@@ -1208,8 +1198,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 6),
 
 ('Proposez-vous un transfert aéroport ?', 'Do you offer airport transfers?',
- 'Oui, nous organisons des transferts privés depuis/vers l''aéroport Princess Juliana (SXM) pour 75€ par trajet. Le trajet dure environ 20-30 minutes.',
- 'Yes, we arrange private transfers to/from Princess Juliana Airport (SXM) for €75 per trip. The journey takes approximately 20-30 minutes.',
+ 'Oui, nous organisons des transferts privés depuis/vers l''aéroport Princess Juliana (SXM) pour 75€ par trajet. Il faut compter environ 1 heure de route. Depuis l''aéroport régional de Grand Case (SFG), c''est seulement 10 minutes.',
+ 'Yes, we arrange private transfers to/from Princess Juliana Airport (SXM) for €75 per trip. The journey takes approximately 1 hour. From Grand Case regional airport (SFG), it''s only 10 minutes.',
  'transport', 7),
 
 ('Avez-vous une piscine ?', 'Do you have a pool?',
@@ -1223,13 +1213,13 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 9),
 
 ('Proposez-vous des activités nautiques ?', 'Do you offer water activities?',
- 'Oui, et gratuitement ! Kayaks, stand-up paddles et équipement de snorkeling sont à disposition. Le dock est à 20 secondes de l''hôtel. Vous pouvez pagayer jusqu''à l''île Pinel en 20 minutes !',
- 'Yes, and they''re free! Kayaks, stand-up paddle boards and snorkeling gear are available. The dock is 20 seconds from the hotel. You can paddle to Pinel Island in 20 minutes!',
+ 'Oui, et gratuitement ! Kayaks, stand-up paddles et équipement de snorkeling sont à disposition. Le petit dock est à 1 minute à pied de l''hôtel. Vous pouvez pagayer jusqu''à l''île Pinel en 20-25 minutes ! Vous pouvez aussi rejoindre Orient Bay à pied le long de la côte en 15-20 minutes.',
+ 'Yes, and they''re free! Kayaks, stand-up paddle boards and snorkeling gear are available. The small dock is a 1-minute walk from the hotel. You can paddle to Pinel Island in 20-25 minutes! You can also walk to Orient Bay along the coast in 15-20 minutes.',
  'activity', 10),
 
 ('L''hôtel est-il adapté aux familles ?', 'Is the hotel family-friendly?',
- 'Absolument ! Notre Suite Familiale (Marcelle & Pierre, 52 m²) combine 2 chambres communicantes avec 2 salles de bain — parfaite pour les familles. Lits bébé et lits d''appoint disponibles. Les enfants de tous âges sont les bienvenus.',
- 'Absolutely! Our Family Suite (Marcelle & Pierre, 52 m²) combines 2 connecting rooms with 2 bathrooms — perfect for families. Cots and extra beds available. Children of all ages are welcome.',
+ 'Absolument ! Notre Suite Familiale (52 m²) combine 2 chambres communicantes avec 2 salles de bain — parfaite pour les familles. Lits bébé et lits d''appoint disponibles (supplément 150€/nuit par enfant). Les enfants de tous âges sont les bienvenus.',
+ 'Absolutely! Our Family Suite (52 m²) combines 2 connecting rooms with 2 bathrooms — perfect for families. Cots and extra beds available (€150/night per child supplement). Children of all ages are welcome.',
  'general', 11),
 
 ('Avez-vous un restaurant ?', 'Do you have a restaurant?',
@@ -1238,8 +1228,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'dining', 12),
 
 ('Quand l''hôtel est-il fermé ?', 'When is the hotel closed?',
- 'L''hôtel ferme chaque année de mi-août à octobre (saison cyclonique). Nous rouvrons en novembre.',
- 'The hotel closes annually from mid-August to October (hurricane season). We reopen in November.',
+ 'L''hôtel ferme chaque année du 15 août au 30 septembre (saison cyclonique). Nous rouvrons le 1er octobre.',
+ 'The hotel closes annually from August 15 to September 30 (hurricane season). We reopen on October 1st.',
  'general', 13),
 
 ('Peut-on privatiser l''hôtel ?', 'Can we book the entire hotel?',
@@ -1248,8 +1238,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'general', 14),
 
 ('Quels restaurants recommandez-vous ?', 'Which restaurants do you recommend?',
- 'Cela dépend de vos envies ! Pour une soirée gastronomique : Le Pressoir ou La Villa Hibiscus. Pour une ambiance beach : Kontiki ou Calmos Café. Pour découvrir la cuisine locale : les lolos de Grand Case (Sky''s the Limit). Pour un dîner romantique : Spiga ou Ocean 82. Marion sera ravie de vous faire des recommandations personnalisées et de réserver pour vous !',
- 'It depends on what you''re in the mood for! Gourmet evening: Le Pressoir or La Villa Hibiscus. Beach vibe: Kontiki or Calmos Café. Local cuisine: Grand Case lolos (Sky''s the Limit). Romantic dinner: Spiga or Ocean 82. Marion will be happy to give personalized recommendations and book for you!',
+ 'Cela dépend de vos envies ! L''île regorge d''excellents restaurants dans plusieurs quartiers : Grand Case (la « capitale gastronomique »), Orient Bay, Marigot et d''autres. Marion & Emmanuel seront ravis de vous faire des recommandations personnalisées selon vos goûts et de réserver pour vous !',
+ 'It depends on what you''re in the mood for! The island is full of excellent restaurants in several areas: Grand Case (the "gourmet capital"), Orient Bay, Marigot and more. Marion & Emmanuel will be happy to give personalized recommendations based on your preferences and book for you!',
  'dining', 15);
 
 
@@ -1267,12 +1257,13 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 ('Problème de paiement', 'escalation', 'Le client mentionne un problème de paiement, lien cassé, montant incorrect', 'Escalader immédiatement. L''IA ne gère PAS les paiements.', 95, TRUE),
 ('Hors périmètre', 'escalation', 'Le sujet n''est pas lié à l''hôtel ou au séjour (partenariat, presse, emploi)', 'Escalader à Emmanuel.', 80, TRUE),
 ('Doute IA', 'escalation', 'Le score de confiance de l''IA est inférieur à 0.7', 'Escalader plutôt que de risquer une réponse incorrecte.', 85, TRUE),
+('Incohérence réservation', 'escalation', 'Les données Thais (dates, chambre, nb personnes) ne correspondent pas à ce que le client affirme (ex: le client dit avoir ajouté des enfants mais Thais montre 2 adultes)', 'Ne PAS proposer de solutions ni corriger. Répondre que l''on vérifie sa réservation et qu''on revient très vite vers lui. Escalader à l''équipe pour vérification manuelle.', 95, TRUE),
 ('Action physique requise', 'escalation', 'Le client demande une réservation restaurant, transfert, ou arrangement nécessitant une action physique', 'Confirmer au client que c''est noté, puis notifier l''équipe (equipe@lemartinhotel.com) pour exécution.', 75, TRUE),
 
 -- Response rules
-('Famille détectée', 'response', 'Le client mentionne enfants, famille, bébé, ou 3-4 personnes', 'Suggérer automatiquement la Suite Familiale (Marcelle & Pierre, 52 m², 2 chambres communicantes).', 70, TRUE),
-('Lune de miel détectée', 'response', 'Le client mentionne lune de miel, honeymoon, mariage, anniversaire de mariage', 'Proposer le forfait Lune de Miel (Suite René, champagne, fleurs) et mentionner les expériences romantiques.', 70, TRUE),
-('PMR détectée', 'response', 'Le client mentionne mobilité réduite, fauteuil roulant, handicap, accessibility', 'Recommander la Suite Marius (RDC, accès PMR, douche adaptée, entrée privée).', 80, TRUE),
+('Famille détectée', 'response', 'Le client mentionne enfants, famille, bébé, ou 3-4 personnes', 'Suggérer automatiquement la Suite Familiale (52 m², 2 chambres communicantes). Supplément enfant : 150€/nuit.', 70, TRUE),
+('Lune de miel détectée', 'response', 'Le client mentionne lune de miel, honeymoon, mariage, anniversaire de mariage', 'Proposer le forfait Lune de Miel (Suite Deluxe vue mer panoramique, champagne, fleurs) et mentionner les expériences romantiques.', 70, TRUE),
+('PMR détectée', 'response', 'Le client mentionne mobilité réduite, fauteuil roulant, handicap, accessibility', 'Recommander la Suite vue jardin avec grande terrasse au RDC (accès PMR, douche adaptée, entrée privée).', 80, TRUE),
 ('Demande de disponibilité', 'response', 'Le client demande la disponibilité pour des dates spécifiques', 'Consulter l''API Thais pour les disponibilités et tarifs exacts du jour. Ne JAMAIS inventer un prix.', 90, TRUE),
 ('Dates flexibles', 'response', 'Le client ne donne pas de dates précises mais demande des infos générales', 'Donner les fourchettes de prix (à partir de 294€/nuit) et inviter à préciser les dates pour un tarif exact.', 60, TRUE),
 ('Restaurant demandé', 'response', 'Le client demande une recommandation de restaurant', 'Utiliser la table restaurants pour recommander selon le profil (romantique, famille, budget, cuisine). Proposer de réserver.', 65, TRUE),
@@ -1284,8 +1275,1020 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 ('Ton français', 'tone', 'Email en français détecté', 'Répondre en français. Vouvoiement. Ton chaleureux et professionnel. Mentionner le prénom du client.', 100, TRUE),
 
 -- Signature rules
-('Signature email', 'signature', 'Toutes les réponses sortantes', 'Signer : Marion / Le Martin Boutique Hotel / Cul de Sac, Saint-Martin', 100, TRUE),
+('Signature email', 'signature', 'Toutes les réponses sortantes', 'Signer : Marion & Emmanuel / Le Martin Boutique Hotel / Cul de Sac, Saint-Martin', 100, TRUE),
 
 -- Availability rules
-('Fermeture annuelle', 'availability', 'Demande pour des dates entre mi-août et octobre', 'Informer poliment que l''hôtel est fermé pendant cette période (saison cyclonique) et proposer les dates les plus proches disponibles.', 95, TRUE),
+('Fermeture annuelle', 'availability', 'Demande pour des dates entre le 15 août et le 30 septembre', 'Informer poliment que l''hôtel est fermé du 15 août au 30 septembre (saison cyclonique) et que nous rouvrons le 1er octobre. Proposer les dates les plus proches disponibles.', 95, TRUE),
 ('Vérification prix Thais', 'pricing', 'Toute demande de prix', 'TOUJOURS consulter l''API Thais pour le tarif exact. Ne JAMAIS inventer, estimer ou arrondir un prix.', 100, TRUE);
+-- ╔══════════════════════════════════════════════════════════════════╗
+-- ║  SCHEMA — Système email IA                                     ║
+-- ║  Templates, partenaires, transports, exemples de conversation  ║
+-- ╚══════════════════════════════════════════════════════════════════╝
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  TABLE — email_templates
+--  Templates email réutilisables (FR/EN, email/whatsapp)
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE TABLE email_templates (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    category            TEXT NOT NULL,
+    name                TEXT NOT NULL,
+    language            TEXT NOT NULL DEFAULT 'fr',
+    channel             TEXT NOT NULL DEFAULT 'email',
+    subject_line        TEXT,
+    body                TEXT NOT NULL,
+    variables           TEXT[] DEFAULT '{}',
+    notes               TEXT,
+    is_active           BOOLEAN DEFAULT TRUE,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_email_templates_category ON email_templates(category);
+CREATE INDEX idx_email_templates_lang ON email_templates(language, channel);
+
+COMMENT ON TABLE email_templates IS 'Templates email pré-rédigés par Marion, réutilisables par l''IA';
+COMMENT ON COLUMN email_templates.category IS 'restaurant_reco, car_rental, cancellation, welcome_board, birthday, pre_arrival, post_stay';
+COMMENT ON COLUMN email_templates.channel IS 'email ou whatsapp';
+COMMENT ON COLUMN email_templates.variables IS 'Placeholders dynamiques : {guest_name}, {arrival_date}, etc.';
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  TABLE — partners
+--  Partenaires de confiance de l'hôtel
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE TABLE partners (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name                TEXT NOT NULL,
+    service_type        TEXT NOT NULL,
+    contact_name        TEXT,
+    contact_email       TEXT,
+    contact_phone       TEXT,
+    website             TEXT,
+    description_fr      TEXT,
+    description_en      TEXT,
+    forward_template_fr TEXT,
+    forward_template_en TEXT,
+    pricing_info        TEXT,
+    notes               TEXT,
+    is_active           BOOLEAN DEFAULT TRUE,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_partners_type ON partners(service_type);
+
+COMMENT ON TABLE partners IS 'Partenaires de confiance du Martin Boutique Hotel';
+COMMENT ON COLUMN partners.service_type IS 'car_rental, snorkeling, gym, boat_tour, taxi, excursion, ferry';
+COMMENT ON COLUMN partners.forward_template_fr IS 'Template de mail à envoyer au partenaire (FR)';
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  TABLE — transport_schedules
+--  Horaires ferry et navettes inter-îles
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE TABLE transport_schedules (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    route               TEXT NOT NULL,
+    operator            TEXT NOT NULL,
+    departure_time      TIME NOT NULL,
+    arrival_time        TIME,
+    day_of_week         TEXT DEFAULT 'daily',
+    duration_minutes    INT,
+    price_amount        DECIMAL(10,2),
+    price_currency      TEXT DEFAULT 'EUR',
+    notes               TEXT,
+    is_active           BOOLEAN DEFAULT TRUE,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_transport_route ON transport_schedules(route);
+CREATE INDEX idx_transport_operator ON transport_schedules(operator);
+
+COMMENT ON TABLE transport_schedules IS 'Horaires des ferries et navettes inter-îles';
+COMMENT ON COLUMN transport_schedules.route IS 'marigot_to_anguilla, anguilla_to_marigot, sxm_to_sbh, sbh_to_sxm';
+COMMENT ON COLUMN transport_schedules.day_of_week IS 'daily, mon-sat, monday, tuesday, etc.';
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  TABLE — email_examples
+--  Exemples de conversations réelles (few-shot pour l'IA)
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE TABLE email_examples (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    category            TEXT NOT NULL,
+    title               TEXT NOT NULL,
+    client_message      TEXT NOT NULL,
+    marion_response     TEXT NOT NULL,
+    context             TEXT,
+    learnings           TEXT[] DEFAULT '{}',
+    language            TEXT DEFAULT 'en',
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_email_examples_category ON email_examples(category);
+
+COMMENT ON TABLE email_examples IS 'Exemples de conversations réelles Marion/clients pour guider l''IA';
+COMMENT ON COLUMN email_examples.category IS 'reservation_inquiry, concierge_restaurant, concierge_activity, concierge_transport, special_occasion, car_rental, modification, pre_arrival, post_stay';
+COMMENT ON COLUMN email_examples.learnings IS 'Leçons que l''IA doit retenir de cet exemple';
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  RLS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transport_schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_examples ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role full access" ON email_templates FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON partners FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON transport_schedules FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON email_examples FOR ALL USING (true) WITH CHECK (true);
+-- ╔══════════════════════════════════════════════════════════════════╗
+-- ║  SEED — Système email IA complet                               ║
+-- ║  Templates · Partenaires · Transports · Exemples · Règles IA   ║
+-- ╚══════════════════════════════════════════════════════════════════╝
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  1. EMAIL TEMPLATES
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSERT INTO email_templates (category, name, language, channel, subject_line, body, variables, notes) VALUES
+
+-- ── Restaurant Reco EN (email) ──
+('restaurant_reco', 'Recommandations restaurants — Email EN', 'en', 'email',
+ 'Our curated restaurant & experience recommendations',
+ 'Dear {guest_name},
+
+We are delighted to share with you a selection of carefully chosen restaurants and experiences, perfectly aligned with the spirit of the Martin Boutique Hotel.
+
+These are places we genuinely love, that we frequent ourselves, and that we are happy to introduce to you during your stay with us. Of course, these suggestions are just a starting point: as you know, we also enjoy guiding you day by day, according to your mood and desires, and whispering along the way a few of our best-kept secrets.
+
+This selection blends French gastronomy, intimate addresses, unexpected spots, and authentic local experiences.
+At Saint-Martin, each day has its own ambiance… and every table tells a story.
+
+For Lunch
+
+Karibuni – Ilet Pinel
+An unmissable experience. If you set off directly from the hotel by kayak, nothing compares to watching turtles and fish before arriving at the beach. A joyful, relaxed atmosphere, feet in the sand — simple, lively luxury.
+
+Coco Beach – Orient Bay
+A chic classic by the sea, perfect for a sunny and elegant lunch, with refined cuisine and a gentle, summery ambiance.
+
+Aloha – Orient Bay
+A friendly, modern, and relaxed spot, ideal for a lunch by the sea in a light and pleasant atmosphere.
+
+Anse Marcel Beach Restaurant – Anse Marcel
+A splendid, peaceful, and elegant natural setting for a timeless lunch, between the turquoise bay and refined cuisine.
+
+For Dinner
+
+Calmos Cafe – Grand Case
+By the water, with a casual and relaxed atmosphere, impeccable service, and one of the island''s most beautiful sunsets. Not to be missed.
+
+Le Java – Grand Case
+In the same spirit, a warm and welcoming atmosphere, perfect for a dinner by the sea at dusk.
+
+Maison Mere – Orient Bay
+A contemporary, elegant, and creative table, where the cuisine is generous and inspired.
+
+L''Atelier – Orient Bay
+Refined cuisine in an elegant and intimate setting, perfect for a gentle, memorable dinner.
+
+Le Cottage – Grand Case
+An iconic gastronomic address, offering a timeless and sophisticated French dining experience.
+
+Les Galets – Grand Case
+Our absolute favorite. A very intimate, sincere place, perfectly aligned with our hotel''s spirit: sensitive cuisine, a cozy atmosphere, and truly moving moments at the table.
+
+L''Astrolabe – Grand Case
+Famous for its lobster nights, an elegant and warm institution for lovers of fine dining.
+
+Les Lolos – Grand Case
+Typical Creole cuisine, BBQ, local ambiance, and authentic flavors: a true immersion into the soul of Saint-Martin.
+
+We remain, of course, at your full disposal to make reservations, refine these suggestions, or guide you according to your desires in the moment.
+
+We look forward to sharing these wonderful addresses with you,
+and to continuing to craft together an experience that truly reflects you.
+
+Warm regards,
+Marion / Idalia
+The Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'Template principal envoyé à tous les clients avant ou pendant le séjour. Utilisé systématiquement dans les threads Richard, Jon, Rosenberg.'),
+
+
+-- ── Restaurant Reco FR (email) ──
+('restaurant_reco', 'Recommandations restaurants — Email FR', 'fr', 'email',
+ 'Nos recommandations gourmandes & expériences locales',
+ 'Chers {guest_name},
+
+Nous sommes ravis de vous proposer une sélection de restaurants et d''expériences soigneusement choisis, en parfaite harmonie avec l''ADN du Martin Boutique Hotel.
+
+Il s''agit de lieux que nous aimons sincèrement, que nous fréquentons, et que nous sommes heureux de vous faire découvrir au fil de votre séjour parmi nous. Bien entendu, ces suggestions ne sont qu''un point de départ : comme vous le savez, nous aimons aussi vous accompagner jour après jour, selon vos envies, votre humeur, et vous chuchoter, au fil de votre séjour, quelques-uns de nos secrets les mieux gardés.
+
+Cette sélection mêle gastronomie française, adresses intimistes, lieux surprenants et expériences plus locales.
+A Saint-Martin, chaque jour a son ambiance… et chaque table raconte une histoire.
+
+Pour le déjeuner
+
+Karibuni – Ilet Pinel
+Une expérience incontournable. Si vous partez directement de l''hôtel en kayak, rien de plus magique que d''observer tortues et poissons avant de rejoindre la plage. Une ambiance joyeuse, décontractée, les pieds dans le sable : le luxe simple et vivant.
+
+Coco Beach – Orient Bay
+Un classique chic en bord de mer, idéal pour un déjeuner élégant, ensoleillé, avec une cuisine raffinée et une atmosphère douce et estivale.
+
+Aloha – Orient Bay
+Une adresse conviviale, moderne et décontractée, parfaite pour un lunch face à la mer dans une ambiance légère et agréable.
+
+Anse Marcel Beach Restaurant – Anse Marcel
+Un cadre naturel splendide, paisible et élégant, pour un déjeuner hors du temps, entre baie turquoise et cuisine soignée.
+
+Pour le dîner
+
+Calmos Cafe – Grand Case
+Au bord de l''eau, une ambiance casual et décontractée, un service impeccable et l''un des plus beaux couchers de soleil de l''île. A ne pas manquer.
+
+Le Java – Grand Case
+Dans le même esprit, une atmosphère chaleureuse et conviviale, idéale pour profiter d''un dîner face à la mer au crépuscule.
+
+Maison Mere – Orient Bay
+Une table contemporaine, élégante et créative, où la cuisine se veut généreuse et inspirée.
+
+L''Atelier – Orient Bay
+Une cuisine fine et maîtrisée, dans un cadre élégant et intimiste, parfait pour un dîner tout en douceur.
+
+Le Cottage – Grand Case
+Une adresse gastronomique emblématique, pour une expérience française raffinée et intemporelle.
+
+Les Galets – Grand Case
+Notre coup de coeur absolu. Un lieu très intimiste, sincère, profondément aligné avec notre ADN : une cuisine sensible, une atmosphère feutrée, et une vraie émotion à table.
+
+L''Astrolabe – Grand Case
+Réputé pour ses soirées langoustes, une institution élégante et chaleureuse pour les amateurs de belles tables.
+
+Les Lolos – Grand Case
+Cuisine créole typique, BBQ, ambiance locale et authentique : une immersion gourmande au coeur de l''âme de Saint-Martin.
+
+Nous restons bien entendu à votre entière disposition pour effectuer les réservations, affiner ces suggestions ou vous guider selon vos envies du moment.
+
+Au plaisir de partager avec vous ces belles adresses,
+et de continuer à façonner ensemble une expérience qui vous ressemble.
+
+Chaleureusement,
+Marion / Idalia
+Le Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'Version française du template restaurant.'),
+
+
+-- ── Restaurant Reco EN (WhatsApp) ──
+('restaurant_reco', 'Recommandations restaurants — WhatsApp EN', 'en', 'whatsapp',
+ NULL,
+ 'Hello {guest_name},
+
+We''re delighted to share a few restaurants and experiences that we love and think you''ll enjoy during your stay at the Martin Boutique Hotel.
+
+For lunch:
+- Karibuni – Ilet Pinel: Kayak trip from the hotel, watch turtles & fish before the beach, joyful and relaxed.
+- Coco Beach – Orient Bay: Chic, sunny, feet in the sand.
+- Aloha – Orient Bay: Friendly, modern, casual.
+- Anse Marcel Beach Restaurant: Peaceful, elegant, with a turquoise bay.
+
+For dinner:
+- Calmos Cafe – Grand Case: Casual, impeccable service, one of the most beautiful sunsets.
+- Le Java – Grand Case: Warm, relaxed, perfect for a sunset dinner by the sea.
+- Maison Mere – Orient Bay: Contemporary, elegant & creative.
+- L''Atelier – Orient Bay: Refined cuisine in an intimate setting.
+- Le Cottage – Grand Case: Iconic French gastronomy.
+- Les Galets – Grand Case: Intimate, sincere, our favorite.
+- L''Astrolabe – Grand Case: Famous for lobster nights, elegant & warm.
+- Les Lolos – Grand Case: Authentic Creole BBQ, lively local atmosphere.
+
+Of course, we''re happy to help with reservations or guide you day by day according to your mood and desires.
+
+Warm regards,
+Marion / Idalia',
+ ARRAY['guest_name'],
+ 'Version courte WhatsApp pour envoi mobile.'),
+
+
+-- ── Restaurant Reco FR (WhatsApp) ──
+('restaurant_reco', 'Recommandations restaurants — WhatsApp FR', 'fr', 'whatsapp',
+ NULL,
+ 'Bonjour {guest_name},
+
+Nous sommes ravis de partager avec vous quelques adresses de restaurants et expériences que nous aimons et qui feront briller votre séjour au Martin Boutique Hotel.
+
+Pour le déjeuner :
+- Karibuni – Ilet Pinel : Départ en kayak depuis l''hôtel, tortues et poissons avant la plage, ambiance joyeuse et détendue.
+- Coco Beach – Orient Bay : Chic, ensoleillé, pieds dans le sable.
+- Aloha – Orient Bay : Convivial, moderne et décontracté.
+- Anse Marcel Beach Restaurant : Cadre paisible et élégant, avec la baie turquoise.
+
+Pour le dîner :
+- Calmos Cafe – Grand Case : Casual, service impeccable, coucher de soleil magnifique.
+- Le Java – Grand Case : Chaleureux et décontracté, idéal pour le soir.
+- Maison Mere – Orient Bay : Contemporain, élégant et créatif.
+- L''Atelier – Orient Bay : Cuisine raffinée dans un cadre intimiste.
+- Le Cottage – Grand Case : Gastronomie française emblématique.
+- Les Galets – Grand Case : Intime et sincère, notre coup de coeur.
+- L''Astrolabe – Grand Case : Réputé pour ses soirées langoustes, élégant et chaleureux.
+- Les Lolos – Grand Case : Cuisine créole authentique, BBQ et ambiance locale.
+
+Nous sommes à votre disposition pour réserver vos tables ou vous guider au fil du séjour selon vos envies.
+
+Chaleureusement,
+Marion / Idalia',
+ ARRAY['guest_name'],
+ 'Version courte WhatsApp FR.'),
+
+
+-- ── Location voiture EN ──
+('car_rental', 'Forward location voiture — Email EN', 'en', 'email',
+ 'Car rental request — Le Martin Boutique Hotel guest',
+ 'Dear Sébastien & Eve,
+
+I hope this message finds you well.
+
+Please find below the contact details of our valued guest, {guest_name} (in copy) who will be staying with us at Le Martin Boutique Hotel from {arrival_date} to {departure_date}.
+
+Could you kindly prepare and send them a quote covering the full duration of their stay?
+
+{special_requests}
+
+Thank you very much for your kind assistance.
+
+Warm regards,
+Marion / Idalia
+Le Martin Boutique Hotel',
+ ARRAY['guest_name', 'arrival_date', 'departure_date', 'special_requests'],
+ 'Email envoyé à Escale Car Rental (Sébastien & Eve) avec le client en copie. Le loueur livre la voiture à l''aéroport. special_requests = ex: siège auto enfant.'),
+
+
+-- ── Location voiture FR ──
+('car_rental', 'Forward location voiture — Email FR', 'fr', 'email',
+ 'Demande de location — Client Le Martin Boutique Hotel',
+ 'Cher Sébastien, chère Eve,
+
+J''espère que vous allez bien.
+
+Vous trouverez ci-dessous les coordonnées de notre client, {guest_name} (en copie), qui séjournera au Martin Boutique Hotel du {arrival_date} au {departure_date}.
+
+Pourriez-vous, s''il vous plaît, lui préparer et lui adresser un devis couvrant l''intégralité de son séjour ?
+
+{special_requests}
+
+Je vous remercie sincèrement pour votre précieuse assistance.
+
+Bien chaleureusement,
+Marion / Idalia
+Le Martin Boutique Hotel',
+ ARRAY['guest_name', 'arrival_date', 'departure_date', 'special_requests'],
+ 'Version FR du forward Escale Car Rental.'),
+
+
+-- ── Annulation EN ──
+('cancellation', 'Modèle annulation — Email EN', 'en', 'email',
+ 'Re: Your reservation at Le Martin Boutique Hotel',
+ 'Dear {guest_name},
+
+We are truly sorry to hear that you will not be able to join us in Saint Martin for your stay.
+
+In accordance with our cancellation policy and the terms of your reservation:
+
+1) Advance Purchase Reservation
+This booking is non-cancellable, non-modifiable, and non-refundable.
+
+2) Flexible Reservation
+- Cancellation more than 30 days prior to arrival: 100% refund.
+- Cancellation between 30 and 16 days prior to arrival: 50% refund.
+- Cancellation between 15 days and the day of arrival, or in case of no-show: the reservation is non-refundable.
+
+However, we will do our utmost to rebook your room and refund any nights successfully reallocated as quickly as possible.
+
+We hope to have the pleasure of welcoming you to Le Martin Boutique Hotel on a future occasion, and remain at your disposal for any questions or assistance.
+
+Warm regards,
+Le Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'IMPORTANT: Ce template est envoyé UNIQUEMENT après validation humaine. L''IA ne doit JAMAIS confirmer une annulation/remboursement de manière autonome. Toujours escalader.'),
+
+
+-- ── Annulation FR ──
+('cancellation', 'Modèle annulation — Email FR', 'fr', 'email',
+ 'Re: Votre réservation au Le Martin Boutique Hotel',
+ 'Cher(e) {guest_name},
+
+Nous sommes sincèrement désolés d''apprendre que vous ne pourrez pas vous rendre à Saint-Martin et profiter de votre séjour parmi nous.
+
+Conformément à notre politique d''annulation et aux conditions tarifaires de votre réservation :
+
+1) Réservation « Advance Purchase »
+Cette réservation est non annulable, non modifiable et non remboursable.
+
+2) Réservation « Flexible »
+- Annulation plus de 30 jours avant votre arrivée : remboursement intégral de votre séjour.
+- Annulation entre 30 et 16 jours avant votre arrivée : remboursement de 50 % de votre séjour.
+- Annulation entre 15 jours avant et le jour de votre arrivée, ou en cas de non-présentation : la réservation n''est pas remboursable.
+
+Cependant, nous mettrons tout en oeuvre pour relouer votre chambre et vous rembourser les nuitées concernées dans les meilleurs délais.
+
+Nous espérons avoir le plaisir de vous accueillir une prochaine fois au Martin Boutique Hotel, et restons à votre disposition pour toute question ou assistance.
+
+Avec nos meilleures salutations,
+Le Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'IMPORTANT: Toujours escalader les annulations. Ce template sert de base après décision humaine.'),
+
+
+-- ── Welcome Board EN ──
+('welcome_board', 'Pré-arrivée Welcome Board — Email EN', 'en', 'email',
+ 'Getting ready for your stay at Le Martin Boutique Hotel',
+ 'Dear {guest_name},
+
+Thank you very much for sharing your flight/boat schedule with us.
+
+Please find attached all the instructions to reach the hotel smoothly.
+
+We wish you a wonderful trip and look forward to welcoming you at Le Martin for a truly lovely stay.
+
+Warm regards,
+Marion & Emmanuel
+Le Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'Envoyé avec le PDF/guide d''accès à l''hôtel (code portail, itinéraire). Déclenché quand le client communique ses horaires de vol.'),
+
+
+-- ── Welcome Board FR ──
+('welcome_board', 'Pré-arrivée Welcome Board — Email FR', 'fr', 'email',
+ 'Préparez votre arrivée au Le Martin Boutique Hotel',
+ 'Cher(e) {guest_name},
+
+Nous vous remercions sincèrement de nous avoir communiqué vos horaires de vol/bateau.
+
+Veuillez trouver en pièce jointe toutes les instructions pour rejoindre l''hôtel.
+
+Nous vous souhaitons un excellent voyage et avons hâte de vous accueillir au Martin pour un séjour des plus agréables.
+
+Cordialement,
+Marion & Emmanuel
+Le Martin Boutique Hotel',
+ ARRAY['guest_name'],
+ 'Version FR du welcome board.'),
+
+
+-- ── Décoration anniversaire EN ──
+('birthday', 'Proposition décoration anniversaire — Email EN', 'en', 'email',
+ 'Re: Birthday Decoration',
+ 'Dear {guest_name},
+
+Thank you for your lovely message!
+
+We would be happy to organize a small birthday decoration for {birthday_person}. We usually prepare a setup with balloons to which we attach little notes — we place about ten balloons and you can send us 10 short messages you would like us to write for them.
+
+We can also arrange a bouquet of flowers for the room.
+
+Here are the rates:
+- Birthday decoration (balloons + notes): 75 EUR
+- Flower bouquet: 60 EUR
+- In-room massage (1 hour): 165 EUR
+
+Let me know what you would like us to prepare, and I will take care of everything for you.
+
+Warm regards,
+Marion',
+ ARRAY['guest_name', 'birthday_person'],
+ 'Proposé quand un client mentionne un anniversaire, lune de miel, ou occasion spéciale. Adapter pour honeymoon/anniversary.'),
+
+
+-- ── Décoration anniversaire FR ──
+('birthday', 'Proposition décoration anniversaire — Email FR', 'fr', 'email',
+ 'Re: Décoration anniversaire',
+ 'Cher(e) {guest_name},
+
+Merci pour votre adorable message !
+
+Nous serions ravis d''organiser une petite décoration d''anniversaire pour {birthday_person}. Nous préparons habituellement un décor avec des ballons auxquels nous attachons de petites notes — nous plaçons environ dix ballons et vous pouvez nous envoyer 10 courts messages que vous souhaitez que nous écrivions.
+
+Nous pouvons également préparer un bouquet de fleurs pour la chambre.
+
+Voici nos tarifs :
+- Décoration anniversaire (ballons + notes) : 75 EUR
+- Bouquet de fleurs : 60 EUR
+- Massage en chambre (1 heure) : 165 EUR
+
+Dites-nous ce que vous souhaitez et nous nous occupons de tout.
+
+Chaleureusement,
+Marion',
+ ARRAY['guest_name', 'birthday_person'],
+ 'Version FR. Adapter pour anniversaire de mariage / lune de miel.');
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  2. PARTENAIRES
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSERT INTO partners (name, service_type, contact_name, contact_email, contact_phone, website, description_fr, description_en, pricing_info, notes) VALUES
+
+('Escale Car Rental', 'car_rental',
+ 'Sébastien & Eve', NULL, NULL, NULL,
+ 'Société de location de voiture partenaire. Amis de Marion et Emmanuel. Super service, trouvent toujours des solutions pour les clients. Livraison possible à l''aéroport.',
+ 'Trusted car rental partner. Friends of Marion and Emmanuel. Excellent service, always find solutions for guests. Airport delivery available.',
+ 'Devis sur demande selon durée du séjour. Siège auto enfant disponible sur demande.',
+ 'Utiliser le template email "car_rental" pour mettre en relation client et Escale Car Rental. Toujours mettre le client en copie.'),
+
+('Bubble Shop', 'snorkeling',
+ NULL, NULL, NULL, NULL,
+ 'Excursion snorkeling de 3 heures au Rocher Créole. Exploration de la vie marine autour des récifs.',
+ 'Three-hour snorkeling excursion to Rocher Créole. Explore the beautiful marine life around the reefs.',
+ 'Tarif sur demande.',
+ 'Recommandé pour les amateurs de snorkeling. Excursion populaire.'),
+
+('Hopfit Hope Estate', 'gym',
+ NULL, NULL, NULL, NULL,
+ 'Salle de sport bien équipée à seulement 5 minutes en voiture de l''hôtel.',
+ 'Well-equipped gym just 5 minutes from the hotel.',
+ 'Accès à la séance.',
+ 'Recommander aux clients qui demandent des activités fitness.'),
+
+('Scoobi Too', 'boat_tour',
+ NULL, NULL, NULL, NULL,
+ 'Sorties bateau privées ou charter. Excursions vers les îles voisines.',
+ 'Private or charter boat trips. Excursions to neighboring islands.',
+ 'Tarif sur demande selon durée et destination.',
+ 'Pour les sorties bateau privées. Mentionné dans la FAQ.'),
+
+('Lottery Farm', 'excursion',
+ NULL, NULL, NULL, NULL,
+ 'Randonnée jusqu''au Pic Paradis, point culminant de l''île. Vue panoramique 180° sur la mer. Parcours zipline disponible.',
+ 'Hike to Pic Paradis, the island''s highest point. Breathtaking 180-degree sea views. Zipline course available.',
+ 'Tarif randonnée + zipline sur demande.',
+ 'Recommandé spécialement pour les ados (zipline) et les amateurs de nature. Combinable avec randonnée Pic Paradis.'),
+
+('Great Bay Express', 'ferry',
+ NULL, NULL, '+1-721-520-5015', 'https://www.greatbayexpress.com',
+ 'Ferry rapide entre Sint Maarten (côté hollandais) et Saint-Barthélemy. 3 rotations par jour, 7j/7.',
+ 'Fast ferry between Sint Maarten (Dutch side) and Saint-Barthélemy. 3 daily rotations, 7 days a week.',
+ 'Voir horaires dans transport_schedules. Réservation sur le site web ou par WhatsApp.',
+ 'Passeport obligatoire. Check-in 15 min avant départ. Départ depuis le côté hollandais (Simpson Bay).'),
+
+('Ferry Marigot-Anguilla', 'ferry',
+ NULL, NULL, NULL, NULL,
+ 'Ferry public Marigot (St-Martin) vers Blowing Point (Anguilla). 10 départs par jour. Traversée 20 minutes. Billetterie sur place uniquement.',
+ 'Public ferry from Marigot (St. Martin) to Blowing Point (Anguilla). 10 daily departures. 20-minute crossing. Tickets on-site only.',
+ 'Aller simple : $30/30 EUR ($15 enfants 2-11 ans) + 7 EUR redevance passagère (dès 4 ans). Taxe Anguilla : $11 (journée) ou $28 (séjour > 12h). Espèces à bord, carte pour la redevance uniquement.',
+ 'Passeport obligatoire. Gare maritime ouverte 7j/7 de 8h30 à 18h sauf intempéries. Billetterie sur place uniquement, pas de réservation en ligne.');
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  3. HORAIRES TRANSPORT
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- Ferry Marigot → Anguilla (Blowing Point)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('marigot_to_anguilla', 'Ferry public Marigot', '08:30', '08:50', 'daily', 20, 30.00, 'EUR', 'Aller simple. +7 EUR redevance passagère. Enfants 2-11: 15 EUR.'),
+('marigot_to_anguilla', 'Ferry public Marigot', '09:30', '09:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '10:30', '10:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '11:30', '11:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '12:30', '12:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '13:30', '13:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '15:00', '15:20', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '16:30', '16:50', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '17:15', '17:35', 'daily', 20, 30.00, 'EUR', NULL),
+('marigot_to_anguilla', 'Ferry public Marigot', '18:00', '18:20', 'daily', 20, 30.00, 'EUR', NULL);
+
+-- Ferry Anguilla (Blowing Point) → Marigot
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('anguilla_to_marigot', 'Ferry public Anguilla', '07:30', '07:50', 'daily', 20, 30.00, 'USD', 'Taxe Anguilla en sus: $11 (journée) ou $28 (séjour > 12h).'),
+('anguilla_to_marigot', 'Ferry public Anguilla', '08:30', '08:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '09:30', '09:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '10:30', '10:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '11:30', '11:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '12:30', '12:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '14:00', '14:20', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '15:30', '15:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '16:30', '16:50', 'daily', 20, 30.00, 'USD', NULL),
+('anguilla_to_marigot', 'Ferry public Anguilla', '17:15', '17:35', 'daily', 20, 30.00, 'USD', NULL);
+
+-- Great Bay Express SXM → SBH (Tableau 1 — matin tôt)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'monday',    45, NULL, 'USD', 'Passeport obligatoire. Check-in 15 min avant. Réservation: greatbayexpress.com'),
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'tuesday',   45, NULL, 'USD', NULL),
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'wednesday', 45, NULL, 'USD', NULL),
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'thursday',  45, NULL, 'USD', NULL),
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'friday',    45, NULL, 'USD', NULL),
+('sxm_to_sbh', 'Great Bay Express', '07:15', '08:00', 'saturday',  45, NULL, 'USD', NULL);
+
+-- Great Bay Express SBH → SXM (Tableau 1 — matin tôt retour)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'monday',    45, NULL, 'USD', NULL),
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'tuesday',   45, NULL, 'USD', NULL),
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'wednesday', 45, NULL, 'USD', NULL),
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'thursday',  45, NULL, 'USD', NULL),
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'friday',    45, NULL, 'USD', NULL),
+('sbh_to_sxm', 'Great Bay Express', '08:30', '09:15', 'saturday',  45, NULL, 'USD', NULL);
+
+-- Great Bay Express SXM → SBH (Tableau 2 — milieu de journée, 7j/7)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sxm_to_sbh', 'Great Bay Express', '09:45', '10:30', 'daily', 45, NULL, 'USD', NULL);
+
+-- Great Bay Express SBH → SXM (Tableau 2 — milieu de journée retour, 7j/7)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sbh_to_sxm', 'Great Bay Express', '11:00', '11:45', 'daily', 45, NULL, 'USD', NULL);
+
+-- Great Bay Express SXM → SBH (Tableau 3 — soir, 7j/7)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sxm_to_sbh', 'Great Bay Express', '17:30', '18:15', 'daily', 45, NULL, 'USD', NULL);
+
+-- Great Bay Express SBH → SXM (Tableau 3 — soir retour, 7j/7)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sbh_to_sxm', 'Great Bay Express', '18:45', '19:30', 'daily', 45, NULL, 'USD', NULL);
+
+-- Ferry côté français SXM → SBH (navette)
+INSERT INTO transport_schedules (route, operator, departure_time, arrival_time, day_of_week, duration_minutes, price_amount, price_currency, notes) VALUES
+('sxm_to_sbh', 'Navette côté français', '00:00', NULL, 'daily', 50, NULL, 'EUR', 'Passeport ou carte d''identité obligatoire. 2 à 3 navettes par jour. Horaires et billetterie: 05 90 87 10 68 ou sur place. Moins intéressant que Great Bay Express selon Emmanuel.');
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  4. SERVICES ADDITIONNELS (ajout à hotel_services existant)
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, description_en, price_eur, price_note, is_complimentary, is_active, sort_order) VALUES
+
+('transfert-aeroport-hotel', 'Transfert aéroport (organisé par l''hôtel)', 'Airport transfer (arranged by the hotel)', 'concierge',
+ 'L''hôtel organise le transfert avec un chauffeur partenaire. Le client paie le chauffeur directement à l''arrivée. Trajet environ 1 heure.',
+ 'The hotel arranges the transfer with a trusted driver partner. The guest pays the driver directly upon arrival. Approximately 1 hour drive.',
+ 90.00, 'Option recommandée. Demander: ville de départ, compagnie, vol, heure arrivée. Taxi direct ~50 EUR.', FALSE, TRUE, 100),
+
+('transfert-aeroport-enligne', 'Transfert aéroport (réservation en ligne)', 'Airport transfer (online booking)', 'concierge',
+ 'Réservation du transfert via le site web de l''hôtel.',
+ 'Transfer booking via the hotel website.',
+ 115.00, '115 EUR depuis aéroport → hôtel. 75 EUR depuis hôtel → aéroport. Proposer l''option à 90 EUR en priorité.', FALSE, TRUE, 101),
+
+('kayak-double-pinel', 'Location kayak double (Pinel)', 'Double kayak rental (Pinel Island)', 'activity',
+ 'Location de kayak double pour rejoindre l''Ilet Pinel depuis le ponton de l''hôtel. Observation des tortues marines en chemin.',
+ 'Double kayak rental to paddle to Pinel Island from the hotel dock. Watch sea turtles along the way.',
+ 40.00, 'Par kayak double. Distinguer de la mise à dispo gratuite des kayaks/paddles pour loisir.', FALSE, TRUE, 102),
+
+('decoration-anniversaire', 'Décoration chambre anniversaire', 'Birthday room decoration', 'event',
+ 'Décoration de la chambre avec ballons et petits messages personnalisés. Environ 10 ballons avec notes attachées.',
+ 'Room decoration with balloons and personalized notes. About 10 balloons with attached messages.',
+ 75.00, 'Demander 10 messages courts. Adaptable pour mariage/lune de miel. Hélium non garanti (île).', FALSE, TRUE, 103),
+
+('bouquet-fleurs', 'Bouquet de fleurs en chambre', 'Flower bouquet in room', 'event',
+ 'Bouquet de fleurs frais disposé dans la chambre pour une occasion spéciale.',
+ 'Fresh flower bouquet placed in the room for a special occasion.',
+ 60.00, 'Complément idéal à la décoration anniversaire. Commander 48h avant.', FALSE, TRUE, 104),
+
+('massage-chambre', 'Massage en chambre', 'In-room massage', 'wellness',
+ 'Massage bien-être réalisé dans l''intimité de votre chambre par un(e) praticien(ne) professionnel(le). 1 heure.',
+ 'Wellness massage in the privacy of your room by a professional therapist. 1 hour.',
+ 165.00, 'Prix actualisé 2026. Réservation 24h à l''avance. Proposer après anniversaire ou occasion spéciale.', FALSE, TRUE, 105);
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  5. EXEMPLES DE CONVERSATIONS (few-shot pour l'IA)
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSERT INTO email_examples (category, title, client_message, marion_response, context, learnings, language) VALUES
+
+-- Exemple 1 : Activité + logistique timing
+('concierge_activity', 'Kayak vers Pinel + contrainte horaire avion',
+ 'Our group has 2 rooms booked for 1 night, Sunday May 17th. Does the hotel offer 2 person Kayaks for us to padel over to Pinel island. Our Winair flight leaves St Barts at 1, so I am not sure what time we will arrive at the hotel. We are considering visiting Pinel island, but I think the shuttle boats might not give us enough time.',
+ 'Dear Scott,
+
+Thank you for your message.
+
+We would be delighted to rent you double kayaks to paddle over to Pinel Island (the rate is 40 EUR per kayak). It''s a lovely experience and a beautiful way to reach the island.
+
+However, if your Winair flight to St. Barths departs at 1:00 PM (from Princess Juliana Airport, I presume), you would need to be at the airport approximately 1 hour and 30 minutes before departure. The drive from the hotel to the airport takes about 1 hour, which means you would need to leave the hotel around 10:30 AM.
+
+While it is technically possible to go to Pinel Island in the morning, I do feel it may be a bit tight in terms of timing and could feel rushed.
+
+Please let me know how you would like to plan your morning. I''m happy to help you organize it in the most relaxed way possible.
+
+Warm regards,
+Marion',
+ 'Client avec contrainte horaire serrée (vol à 13h, trajet 1h vers aéroport, check-in 1h30 avant).',
+ ARRAY[
+   'Toujours calculer le timing réel quand un client a un vol',
+   'Trajet hôtel → aéroport Princess Juliana = environ 1 heure',
+   'Check-in aéroport = 1h30 avant le vol',
+   'Ne jamais hésiter à prévenir que le timing est serré plutôt que de laisser le client stressé',
+   'Proposer d''organiser la matinée de manière détendue'
+ ], 'en'),
+
+
+-- Exemple 2 : Demande de réservation (client qui revient)
+('reservation_inquiry', 'Client fidèle demande extension de séjour',
+ 'We are looking to add another night (7th night) on to our existing reservation (February 6) is that possible to do without moving rooms? Let me know.',
+ 'Hi,
+
+Thank you for your message — I''m happy to share some good news.
+
+Yes, it is absolutely possible to add an additional night on February 6th to your existing reservation without changing rooms. I do have one room remaining, which allows me to extend your stay seamlessly.
+
+That said, I wanted to let you know that I have had to adjust our planning to make this possible, and reservations are currently very active. Availability can change quickly, and it is possible that this room may no longer be available if not confirmed soon.
+
+Please let me know if you would like me to go ahead and secure this extra night for you, and I will take care of the rest.
+
+Warm regards,
+Marion',
+ 'Client fidèle (Richard) qui revient pour la 2e année. Réservation existante dans la chambre Marcelle.',
+ ARRAY[
+   'Créer un sentiment d''urgence subtil sans être pushy',
+   'Mentionner que des ajustements ont été faits = valorise l''effort',
+   'Proposer de tout gérer pour le client',
+   'Pour les clients fidèles, ton plus chaleureux et familier'
+ ], 'en'),
+
+
+-- Exemple 3 : Recommandation restaurant personnalisée
+('concierge_restaurant', 'Client demande conseil restaurant spécifique',
+ 'We were hoping you could help us with a beach club reservation this coming Sunday. We really enjoyed Coco Beach last year but understand they are under new ownership. Would you still recommend? We want more of a French vibe than an American vibe. Do they still have French DJs on Sunday? Also, how is the new place, Babacool in Simpson Bay?',
+ 'Dear Richard,
+
+We are looking forward to seeing you soon!
+
+Coco Beach is still a wonderful spot — the change in ownership has been very positive, and the atmosphere remains fantastic. The French DJ on Sunday evenings is still there, so you''ll get the same French vibe you enjoyed last year.
+
+Your reservation is confirmed for Sunday!
+
+Regarding Babacool in Simpson Bay, I haven''t personally been, and the feedback I''ve heard hasn''t been very strong. If you''re looking for a better experience, I would recommend Kalatua instead — it''s more reliable and enjoyable.
+
+[... suivi du template restaurant complet ...]
+
+Warm regards,
+Marion',
+ 'Client fidèle qui connaît déjà l''île. Demande conseil sur un lieu spécifique + comparaison.',
+ ARRAY[
+   'Répondre d''abord à la question spécifique AVANT d''envoyer le template',
+   'Être honnête sur les endroits non recommandés (Babacool: feedback pas très fort)',
+   'Proposer une alternative concrète (Kalatua au lieu de Babacool)',
+   'Confirmer la réservation directement quand c''est possible',
+   'Ajouter le template restaurant complet après la réponse personnalisée'
+ ], 'en'),
+
+
+-- Exemple 4 : Booking multi-chambres
+('reservation_inquiry', 'Pas de chambre unique dispo — proposition alternative',
+ 'We would love to book one room for Feb 19-26 for 2 people (for my wife''s birthday). It seems that there is no one room available for that whole time but we would be happy to move rooms during the holiday. Would you be able to accommodate us?',
+ 'Bonsoir Jon,
+
+Thank you very much for your message and for your interest in the Martin Boutique Hotel. We would be truly delighted to welcome you and your wife to celebrate her birthday with us.
+
+Indeed, we no longer have availability for the entire stay in the same room. However, we would be very happy to offer you the following alternative, which will allow you to fully enjoy your time with us:
+
+From February 19th to 23rd: the Deluxe Suite – Garden View, also known as La Chambre de Marius.
+From February 23rd to 26th: the Privilege Room – La Chambre de Pierre.
+
+I will send you, in a separate email, a detailed quotation including our Advance Purchase rate, which offers a 10% discount. Please note that this rate is non-refundable, non-changeable, and non-cancellable.
+
+Please feel free to let me know if this arrangement suits you or if you have any questions at all.
+
+Warm regards,
+Marion',
+ 'Client souhaite 1 chambre sur 7 nuits mais aucune chambre n''est dispo sur toute la période.',
+ ARRAY[
+   'Quand pas de dispo en 1 chambre, proposer 2 chambres consécutives',
+   'Nommer les chambres par leur nom (Marius, Pierre) + lien site web',
+   'Mentionner le tarif Advance Purchase (-10%) dès le début',
+   'Préciser les conditions (non remboursable, non modifiable)',
+   'Envoyer le devis dans un email séparé',
+   'Reconnaître l''occasion spéciale (anniversaire)'
+ ], 'en'),
+
+
+-- Exemple 5 : Pré-arrivée concierge complet
+('pre_arrival', 'Questions pré-arrivée multiples (voiture, fitness, activités, dîners)',
+ 'We arrive on Feb 19 on DL1887 at 12.13pm. Just some thoughts / questions: Should we hire a car or is it easy to get around? Would you be able to arrange some evening dinners for us? We also would love to do some fitness activities - what do you recommend? What other activities do you recommend? (We like rum :-)) If we do not hire a car, can you arrange transfers from the airport?',
+ 'Dear Jon & Cass,
+
+We are so excited to welcome you on Thursday!
+
+Thank you for sharing your arrival details. We have noted that you land on February 19 at 12:13 pm on DL1887.
+
+Car rental: I can put you in contact with our trusted car rental partner who can deliver your vehicle directly at the airport on the day of your arrival.
+
+Fitness: There is a very nice gym just 5 minutes from the hotel: Hopfit Hope Estate.
+
+Nature & outdoor: We highly recommend a kayak outing directly from the hotel to Ilet Pinel. For snorkeling, we can organize a 3-hour excursion with Bubble Shop to Rocher Créole. For hiking, I recommend Lottery Farm up to Pic Paradis with breathtaking 180-degree views.
+
+Rum: We have a lovely selection of infused rums at the hotel which you can enjoy by the pool. We can also recommend tastings around the island.
+
+[... suivi du template restaurant complet ...]
+
+Warmest regards,
+Marion & Idalia',
+ 'Client arrivant bientôt, multiple questions pratiques d''un coup.',
+ ARRAY[
+   'Toujours noter le numéro de vol et l''heure d''arrivée',
+   'Structurer la réponse par thème (voiture, fitness, activités, restaurants)',
+   'Pour la voiture: proposer le partenaire Escale Car Rental avec livraison aéroport',
+   'Pour le fitness: recommander Hopfit Hope Estate (5 min)',
+   'Pour les activités: kayak Pinel, snorkeling Bubble Shop, rando Lottery Farm',
+   'Finir par le template restaurant complet',
+   'Adapter le ton quand le client montre de l''humour (le rum :-) )'
+ ], 'en'),
+
+
+-- Exemple 6 : Modification réservation non remboursable
+('modification', 'Raccourcir un séjour Advance Purchase',
+ 'Thank you for confirming the reservation, I am looking forward to our stay at your beautiful property. I am in need of a change to the reservation please…we will need to leave on Saturday February 14. Is a change possible?',
+ 'Dear Mary Beth,
+
+Thank you very much for your message, and we are delighted to know that you are looking forward to your stay with us.
+
+Regarding your request to shorten your stay and depart on Saturday, February 14th, your reservation was made under our Advance Purchase Offer – Breakfast Included, which offers a 10% discount on the room rate. As indicated in the rate conditions, this offer is non-refundable and non-modifiable, with a 100% deposit taken at the time of booking.
+
+That said, I completely understand your situation and will do my best to assist you. I can exceptionally open availability for the two nights in question, and should these nights be rebooked by other guests, I will be happy to refund you the corresponding amount.
+
+Please let me know if you wish to proceed in this way, and I will take care of everything.
+
+Warm regards,
+Marion Dufaur
+Le Martin Boutique Hotel',
+ 'Réservation Advance Purchase (non remboursable). Client veut raccourcir de 2 nuits.',
+ ARRAY[
+   'TOUJOURS ESCALADER les demandes de modification/annulation/remboursement',
+   'Rappeler les conditions du tarif (Advance Purchase = non remboursable)',
+   'Montrer de l''empathie et proposer une solution: rembourser si les nuits sont rebookées',
+   'Ne jamais promettre un remboursement direct — conditionner au rebooking',
+   'Utiliser le nom complet avec titre (Marion Dufaur) pour les sujets importants'
+ ], 'en'),
+
+
+-- Exemple 7 : Décoration anniversaire + transfert
+('special_occasion', 'Organisation anniversaire + transfert aéroport',
+ 'We have a reservation under the name Erica Shepperd-Debnam for February 26-28th. We are celebrating Erica''s birthday and I wanted to inquire about decorating the room for her birthday. Is this something that the hotel is able to help facilitate?',
+ 'Dear Nneka,
+
+Thank you for your lovely message!
+
+We would be happy to organize a small birthday decoration for Erica. We usually prepare a setup with balloons to which we attach little notes — we place about ten balloons and you can send us 10 short messages you would like us to write for her.
+
+We can also arrange a bouquet of flowers for the room.
+
+Please note that I cannot fully guarantee the balloon floating effect, as it requires a helium tank and, on a small island, it can sometimes be challenging to source certain supplies… but I will absolutely do my best to make it beautiful.
+
+Here are the rates:
+- Birthday decoration: 75 EUR
+- Flower bouquet: 60 EUR
+- Massage (1 hour): 165 EUR
+
+Let me know what you would like us to prepare, and I will take care of everything for you.
+
+Warm regards,
+Marion',
+ 'Réservation au nom d''une personne, mais c''est son amie qui organise la surprise.',
+ ARRAY[
+   'Répondre avec enthousiasme aux occasions spéciales',
+   'Détailler le process (10 ballons, 10 messages)',
+   'Être transparente sur les limitations (hélium sur une petite île)',
+   'Proposer des extras (fleurs, massage) en upsell naturel',
+   'Tarifs transfert: 90 EUR (hôtel organise), 115 EUR (via site), ~50 EUR (taxi direct)',
+   'Pour le transfert: demander ville de départ, compagnie, numéro de vol, heure d''arrivée'
+ ], 'en'),
+
+
+-- Exemple 8 : Planning restaurant complet sur séjour long
+('concierge_restaurant', 'Organisation complète lunch + dîner sur 10 jours',
+ 'Thank you for sharing your preferred restaurants for dinner. [Client a envoyé sa liste de restaurants souhaités pour chaque jour de son séjour de 10 nuits]',
+ 'Dear Joseph and Phil,
+
+We are delighted to welcome you back and look forward to having you with us again.
+
+Please note that dinner seatings are typically available at 6:00 or 6:30 p.m., and 8:00 or 8:30 p.m. However, we were able to secure one of your reservations for 7:30 p.m.
+
+We are pleased to confirm that all of your lunch & dinner reservations have been secured as follows:
+
+Friday, February 27
+Lunch: Coco Beach – Beach chairs and lunch confirmed for 12:30 p.m.
+Dinner: Maison Mere – Confirmed for 8:00 p.m.
+
+Saturday, February 28
+Lunch: Joa Beach – Beach chairs and lunch confirmed for 12:30 p.m.
+Dinner: Le Pressoir – Confirmed for 8:00 p.m.
+
+[... suite du planning jour par jour ...]
+
+Please do not hesitate to let us know if there is anything further we may assist you with.
+
+Kind regards,
+Idalia',
+ 'Clients fidèles (3e séjour). Planning lunch + dîner sur 10 jours avec beach chairs.',
+ ARRAY[
+   'Pour les séjours longs (>7 nuits), proposer d''organiser tous les repas',
+   'Mentionner les créneaux disponibles (18h/18h30 et 20h/20h30)',
+   'Inclure les beach chairs pour les déjeuners en bord de mer',
+   'Format: jour par jour, Lunch + Dinner, nom du restaurant, heure confirmée',
+   'Si un restaurant nécessite une carte bancaire (ex: Rainbow Cafe), le préciser',
+   'Idalia signe ce type de mail opérationnel (pas Marion)'
+ ], 'en'),
+
+
+-- Exemple 9 : Message post-séjour chaleureux
+('post_stay', 'Message d''attention post-séjour',
+ 'I am most grateful, Marion! We are currently enduring a blizzard and I so wish we were still there! I look forward to returning to your beautiful island and of course staying at your peaceful oasis!',
+ 'Dear Mary Beth,
+
+Oh my goodness… a blizzard! I can only imagine how cold it must be. I wish I could send you a little box of Caribbean sunshine right now.
+
+We miss you already and would absolutely love to welcome you back to our peaceful oasis whenever you are ready to escape the snow. St. Martin will be here, warm and glowing, waiting for you.
+
+Until then, stay cozy and safe — and keep dreaming of turquoise waters and gentle island breezes.
+
+With warmest thoughts,
+Marion',
+ 'Client post-séjour qui mentionne la météo chez elle (blizzard). Marion répond avec chaleur et poésie.',
+ ARRAY[
+   'Les messages post-séjour sont très personnels — l''IA doit ESCALADER ou générer un brouillon supervisé',
+   'Rebondir sur ce que dit le client (météo, souvenirs)',
+   'Utiliser des images poétiques (box of Caribbean sunshine, turquoise waters)',
+   'Toujours laisser la porte ouverte pour un retour',
+   'Ce type d''échange construit la fidélité — ne jamais répondre de manière générique'
+ ], 'en');
+
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+--  6. NOUVELLES RÈGLES IA
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is_active) VALUES
+
+-- Classification des emails
+('Classification email — restaurant', 'response',
+ 'Le client demande des recommandations de restaurants, des suggestions pour déjeuner ou dîner, ou mentionne qu''il cherche où manger.',
+ 'Utiliser le template email_templates.category = "restaurant_reco" dans la langue du client. Personnaliser l''introduction avant le template. Répondre d''abord aux questions spécifiques si le client mentionne un restaurant précis.',
+ 30, TRUE),
+
+('Classification email — location voiture', 'response',
+ 'Le client demande comment se déplacer, s''il faut louer une voiture, ou demande un transfert depuis l''aéroport.',
+ 'Recommander la location de voiture avec le partenaire Escale Car Rental (Sébastien & Eve). Utiliser le template email_templates.category = "car_rental". Mettre le client en copie du mail au partenaire.',
+ 31, TRUE),
+
+('Classification email — occasion spéciale', 'response',
+ 'Le client mentionne un anniversaire, une lune de miel, un anniversaire de mariage ou toute occasion spéciale.',
+ 'Proposer la décoration chambre (75 EUR), le bouquet de fleurs (60 EUR) et le massage (165 EUR/h). Utiliser le template email_templates.category = "birthday". Adapter le message selon l''occasion.',
+ 32, TRUE),
+
+('Classification email — activités', 'response',
+ 'Le client demande des activités, des choses à faire, ou des expériences sur l''île.',
+ 'Répondre avec les données de la table activities + partners. Recommander en priorité : kayak vers Pinel (40 EUR/kayak double), snorkeling avec Bubble Shop (Rocher Créole, 3h), randonnée Lottery Farm/Pic Paradis. Pour les ados : insister sur kayak, jet ski Orient Bay, zipline Lottery Farm.',
+ 33, TRUE),
+
+('Classification email — transport inter-îles', 'response',
+ 'Le client demande comment aller à Anguilla ou Saint-Barthélemy.',
+ 'Consulter la table transport_schedules. Pour Anguilla: ferry depuis Marigot, 20 min, 30 EUR. Pour St. Barth: recommander Great Bay Express (côté hollandais, 45 min, 3 rotations/jour). Toujours mentionner le passeport obligatoire.',
+ 34, TRUE),
+
+('Classification email — transfert aéroport', 'response',
+ 'Le client demande un transfert aéroport ou comment se rendre à l''hôtel depuis l''aéroport.',
+ 'Proposer 3 options. Recommandée: hôtel organise (90 EUR). Alternative: en ligne (115 EUR aéroport, 75 EUR hôtel). Taxi direct: ~50 EUR. Trajet Princess Juliana → hôtel = 1h. Demander: ville départ, compagnie, vol, heure arrivée.',
+ 35, TRUE),
+
+('Classification email — pré-arrivée', 'response',
+ 'Le client communique ses horaires de vol ou demande comment rejoindre l''hôtel.',
+ 'Envoyer le template welcome_board avec instructions d''accès et code portail. Noter le numéro de vol et l''heure d''arrivée. Si arrivée après 19h, demander au client de prévenir à l''avance.',
+ 36, TRUE),
+
+-- Escalades supplémentaires
+('Escalade — réservation restaurant', 'escalation',
+ 'Le client demande de réserver une table dans un restaurant spécifique.',
+ 'L''IA peut recommander des restaurants mais ne doit JAMAIS confirmer une réservation. Les réservations nécessitent un appel téléphonique par l''équipe. Formuler : "I will take care of the reservation and confirm the details shortly."',
+ 82, TRUE),
+
+('Escalade — mise en relation partenaire', 'escalation',
+ 'L''email nécessite un contact avec un partenaire externe (Escale Car Rental, Bubble Shop, etc.).',
+ 'L''IA peut rédiger un brouillon de mail vers un partenaire mais ne doit JAMAIS l''envoyer directement. Toujours passer en mode brouillon supervisé pour les mails vers des partenaires externes.',
+ 83, TRUE),
+
+('Escalade — post-séjour et fidélisation', 'escalation',
+ 'Le client envoie un message de remerciement post-séjour ou exprime le souhait de revenir.',
+ 'Générer un brouillon supervisé. Ne JAMAIS envoyer automatiquement un message post-séjour. Marion y met une touche très personnelle et poétique. Ces échanges construisent la fidélité.',
+ 84, TRUE),
+
+-- Règles de ton
+('Ton — anticipation proactive', 'tone',
+ 'Le client mentionne un timing serré (vol, ferry, activité) ou une logistique complexe.',
+ 'Toujours anticiper les problèmes logistiques (timing kayak+vol, trajet aéroport, horaires ferry). Prévenir le client plutôt que de le laisser découvrir seul. Formuler comme un conseil bienveillant, pas comme un refus.',
+ 42, TRUE),
+
+('Ton — upsell naturel', 'tone',
+ 'L''occasion se présente pour proposer des services additionnels (anniversaire, lune de miel, long séjour).',
+ 'Proposer naturellement décoration, fleurs, massage, restaurants sans être commercial. Le ton doit être "nous serions ravis de..." et non "nous proposons aussi...". L''upsell doit sembler un cadeau, pas une vente.',
+ 43, TRUE),
+
+('Ton — honnêteté recommandations', 'tone',
+ 'Le client demande un avis sur un lieu ou restaurant spécifique.',
+ 'Toujours être honnête. Si un lieu n''est pas recommandé, formuler diplomatiquement: "the feedback I''ve heard hasn''t been very strong" et proposer une alternative. Les Galets = favori absolu. Kalatua = recommandé. Babacool = pas recommandé.',
+ 44, TRUE);

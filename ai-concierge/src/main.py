@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import logging
+import sys
 from contextlib import asynccontextmanager
+
+# Force UTF-8 on stdout/stderr so emojis & special chars don't crash on Windows
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 from datetime import date
 from pathlib import Path
 
@@ -14,6 +20,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
 from src.api.health import router as health_router
+from src.api.stats import router as stats_router
 from src.api.webhooks import router as webhooks_router
 from src.config import settings
 from src.services import outlook
@@ -74,7 +81,10 @@ async def _polling_loop():
     while True:
         try:
             emails = await outlook.fetch_unread_emails(limit=settings.max_emails_per_cycle)
-            new_emails = [e for e in emails if not is_already_processed(e.outlook_message_id)]
+            new_emails = []
+            for e in emails:
+                if not await is_already_processed(e.outlook_message_id):
+                    new_emails.append(e)
             if new_emails:
                 log.info("polling.new_emails", total_unread=len(emails), new=len(new_emails))
                 for email in new_emails:
@@ -137,6 +147,7 @@ app = FastAPI(
 )
 
 app.include_router(health_router)
+app.include_router(stats_router)
 app.include_router(webhooks_router)
 
 

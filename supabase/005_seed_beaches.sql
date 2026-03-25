@@ -8,10 +8,10 @@ INSERT INTO beaches (name, side, distance_km, driving_time_min, walking_time_min
 ('Cul de Sac Bay', 'french', 0, 0, 0,
  'Baie calme, dock de l''hôtel, départ kayak/paddle vers Pinel', 'Dock hôtel, kayaks gratuits, paddle gratuits', 'Calme',
  ARRAY['kayak', 'paddle', 'snorkeling', 'calm'],
- 'La baie de l''hôtel. Dock à 20 secondes à pied pour les kayaks et paddles. Départ vers l''île Pinel.',
- 'The hotel''s own bay. Dock 20 seconds walk for kayaks and paddleboards. Departure point for Pinel Island.', 1),
+ 'La baie de l''hôtel. Petit dock à 1 minute à pied pour les kayaks et paddles. Le ferry vers Pinel part d''un autre dock (2-3 min en voiture ou 15 min à pied).',
+ 'The hotel''s own bay. Small dock 1 minute walk for kayaks and paddleboards. The ferry to Pinel departs from a different dock (2-3 min drive or 15 min walk).', 1),
 
-('Orient Bay Beach', 'french', 1.9, 5, 10,
+('Orient Bay Beach', 'french', 1.9, 5, 18,
  'La plus célèbre de l''île. 2 km de sable blanc, beach clubs, sports nautiques', 'Beach clubs, transats, restaurants, jet ski, kitesurf, parasailing, toilettes, douches', 'Animé',
  ARRAY['beach_clubs', 'water_sports', 'nightlife', 'family', 'snorkeling'],
  'Le "Saint-Tropez des Caraïbes". Plage la plus animée de l''île avec beach clubs (Kontiki, KKO, Bikini Beach, Wai Beach), restaurants, sports nautiques. Section naturiste au sud.',

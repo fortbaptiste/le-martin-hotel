@@ -16,13 +16,13 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
  0, 'Inclus', TRUE, 2),
 
 ('kayaks', 'Kayaks', 'Kayaks', 'activity',
- 'Kayaks en libre-service. Dock à 20 secondes à pied de l''hôtel. Idéal pour rejoindre l''Île Pinel (20-25 min de pagaie).',
- 'Complimentary kayaks. Dock 20 seconds walk from hotel. Perfect for paddling to Pinel Island (20-25 min).',
+ 'Kayaks en libre-service. Petit dock à 1 minute à pied de l''hôtel. Idéal pour rejoindre l''Île Pinel (20-25 min de pagaie).',
+ 'Complimentary kayaks. Small dock 1 minute walk from hotel. Perfect for paddling to Pinel Island (20-25 min).',
  0, 'Inclus', TRUE, 3),
 
 ('paddle', 'Stand-up paddle (SUP)', 'Stand-up paddle (SUP)', 'activity',
- 'Planches de paddle en libre-service au dock de l''hôtel.',
- 'Complimentary stand-up paddle boards at hotel dock.',
+ 'Planches de paddle en libre-service au petit dock de l''hôtel (1 min à pied).',
+ 'Complimentary stand-up paddle boards at the hotel''s small dock (1 min walk).',
  0, 'Inclus', TRUE, 4),
 
 ('snorkeling', 'Équipement de snorkeling', 'Snorkeling gear', 'activity',
@@ -67,34 +67,34 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
 
 -- PAYANTS
 ('shuttle', 'Navette aéroport / port', 'Airport / port shuttle', 'transport',
- 'Transfert privé depuis/vers l''aéroport Princess Juliana (SXM) ou le port de Marigot.',
- 'Private transfer to/from Princess Juliana Airport (SXM) or Marigot port.',
- 75.00, 'Par trajet', FALSE, 20),
+ 'Transfert privé depuis/vers l''aéroport Princess Juliana (SXM, environ 1h de route) ou l''aéroport Grand Case (SFG, 10 min) ou le port de Marigot.',
+ 'Private transfer to/from Princess Juliana Airport (SXM, approx. 1 hour drive) or Grand Case Airport (SFG, 10 min) or Marigot port.',
+ 70.00, 'Par trajet (aller simple) — 140€ aller-retour', FALSE, 20),
 
 ('massage-solo', 'Massage individuel (1h)', 'Individual massage (1h)', 'wellness',
- 'Massage d''une heure en chambre ou en extérieur. Différentes techniques disponibles.',
- 'One-hour massage in-room or outdoors. Various techniques available.',
- 120.00, 'Par séance', FALSE, 21),
+ 'Massage d''une heure en chambre. Différentes techniques disponibles. Réservation 24h à l''avance.',
+ 'One-hour in-room massage. Various techniques available. 24h advance booking required.',
+ 165.00, 'Par séance', FALSE, 21),
 
 ('massage-couple', 'Massage en duo (1h)', 'Couples massage (1h)', 'wellness',
- 'Massage en duo d''une heure, en chambre ou en extérieur.',
- 'One-hour couples massage, in-room or outdoors.',
- 240.00, 'Par séance', FALSE, 22),
+ 'Massage en duo d''une heure, en chambre. Réservation 24h à l''avance.',
+ 'One-hour couples massage, in-room. 24h advance booking required.',
+ 330.00, 'Par séance', FALSE, 22),
 
 ('yoga', 'Cours de yoga privé (1h)', 'Private yoga class (1h)', 'wellness',
  'Cours de yoga privé d''une heure — au jardin, sur paddle ou au bord de la piscine.',
  'One-hour private yoga class — in the garden, on paddle board or poolside.',
- 104.00, 'Par séance', FALSE, 23),
+ 110.00, 'Par séance', FALSE, 23),
 
 ('facial', 'Soin visage Carita', 'Carita facial treatment', 'wellness',
- 'Soin du visage professionnel par Carita.',
- 'Professional Carita facial treatment.',
+ 'Soin du visage professionnel par Carita. Réservation 24h à l''avance.',
+ 'Professional Carita facial treatment. 24h advance booking required.',
  180.00, 'Par séance', FALSE, 24),
 
 ('coaching', 'Coaching sportif privé (1h)', 'Private coaching session (1h)', 'wellness',
  'Séance de coaching sportif privée d''une heure — à l''hôtel ou en découverte de l''île.',
  'One-hour private coaching session — at the hotel or discovering the island.',
- 80.00, 'Par séance', FALSE, 25),
+ 110.00, 'Par séance', FALSE, 25),
 
 ('champagne', 'Champagne en chambre', 'Champagne in room', 'room_extra',
  'Bouteille de champagne déposée en chambre.',
@@ -144,9 +144,9 @@ INSERT INTO hotel_services (slug, name_fr, name_en, category, description_fr, de
 ('honeymoon', 'Forfait Lune de Miel', 'Honeymoon package', 'event',
  'Package personnalisé avec champagne, douceurs sucrées, bouquet de fleurs. Conçu sur mesure avec les mariés.',
  'Customized package with champagne, sweet treats, flower bouquet. Designed with you, for you.',
- 896.00, 'À partir de, par nuit (Suite René)', FALSE, 35),
+ 896.00, 'À partir de, par nuit (Suite Deluxe vue mer panoramique)', FALSE, 35),
 
-('pilates', 'Cours de Pilates', 'Pilates class', 'wellness',
- 'Cours de Pilates disponibles à l''hôtel.',
- 'Pilates classes available at the hotel.',
- 0, 'Sur demande', FALSE, 36);
+('pilates', 'Cours de Pilates privé (1h)', 'Private Pilates class (1h)', 'wellness',
+ 'Cours de Pilates privé d''une heure à l''hôtel.',
+ 'One-hour private Pilates class at the hotel.',
+ 110.00, 'Par séance', FALSE, 36);

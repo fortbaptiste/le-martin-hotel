@@ -30,12 +30,12 @@ class Settings(BaseSettings):
 
     # ── Anthropic ──
     anthropic_api_key: str
-    anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_model: str = "claude-sonnet-4-6"
     anthropic_max_tokens: int = 4096
     anthropic_temperature: float = 0.3
 
     # ── Thais PMS ──
-    thais_api_url: str = "https://demo.thais-hotel.com"
+    thais_api_url: str = "https://lemartinhotel.thais-hotel.com"
     thais_api_user: str = ""
     thais_api_password: str = ""
     thais_user_agent: str = "VisionIA-LeMartin/1.0"
@@ -64,7 +64,10 @@ class Settings(BaseSettings):
 
     # ── Escalation ──
     escalation_confidence_threshold: float = 0.7
-    escalation_email: str = "emmanuel@lemartinhotel.com"
+    escalation_emails: list[str] = ["emmanuel@lemartinhotel.com", "marion@lemartinhotel.com"]
+
+    # ── Webhooks ──
+    webhook_client_state: str = ""   # Graph subscription clientState secret (leave empty to skip verification)
 
     # ── Notifications ──
     notify_email: str = "emmanuel@lemartinhotel.com"

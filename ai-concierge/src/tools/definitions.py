@@ -1,4 +1,4 @@
-"""12 tool schemas for Claude tool_use — the concierge knowledge toolkit."""
+"""14 tool schemas for Claude tool_use — the concierge knowledge toolkit."""
 
 from __future__ import annotations
 
@@ -8,7 +8,15 @@ TOOLS: list[dict] = [
         "name": "check_room_availability",
         "description": (
             "Check real-time room availability and EXACT pricing from Thais PMS. "
-            "You MUST call this tool before quoting any price. Never invent a price."
+            "Returns availability for each room type along with nightly prices, totals, "
+            "and rooms_left (number of rooms still available for that type — important for groups). "
+            "Two rate plans returned: Best Flexible Rate and Advance Purchase Rate (-10%, non-refundable). "
+            "You MUST call this tool before quoting any price. Never invent a price. "
+            "All dates MUST be in the future (2026 or later). Never use past dates. "
+            "IMPORTANT for stay extensions: when a guest wants to extend an existing booking, "
+            "set checkin to their CURRENT checkout date and checkout to their DESIRED new checkout date. "
+            "Do NOT check the full date range including already-booked nights — the guest's own booking "
+            "will make those nights appear unavailable."
         ),
         "input_schema": {
             "type": "object",
@@ -29,6 +37,33 @@ TOOLS: list[dict] = [
             "required": ["checkin", "checkout"],
         },
     },
+    # 1b — Lookup existing reservation (Thais PMS)
+    {
+        "name": "lookup_reservation",
+        "description": (
+            "Look up a guest's EXISTING reservation in Thais PMS by name or email. "
+            "You must provide at least guest_email OR guest_name. "
+            "Returns booking details: dates, room type, number of adults, number of children, status. "
+            "You MUST call this tool BEFORE proposing changes when a guest mentions an existing booking. "
+            "CRITICAL: Compare what Thais shows (e.g. '2 adults, 0 children') with what the guest claims "
+            "(e.g. '2 adults + 2 children'). If there is ANY discrepancy, DO NOT propose solutions — "
+            "say you are checking the reservation and escalate to the team."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "guest_email": {
+                    "type": "string",
+                    "description": "Guest email address to search",
+                },
+                "guest_name": {
+                    "type": "string",
+                    "description": "Guest last name to search (use if email not available)",
+                },
+            },
+            "required": [],
+        },
+    },
     # 2 — Room details (Supabase)
     {
         "name": "get_room_details",
@@ -45,8 +80,10 @@ TOOLS: list[dict] = [
             "properties": {
                 "room_slug": {
                     "type": "string",
-                    "description": "Room slug (e.g. 'rene', 'marius', 'marcelle', 'pierre', 'marthe', 'georgette', 'family-suite'). "
-                                   "Omit to get all rooms.",
+                    "description": (
+                        "Use room_slug from previous get_room_details results, "
+                        "or omit to get all rooms."
+                    ),
                 },
             },
             "required": [],
@@ -56,8 +93,14 @@ TOOLS: list[dict] = [
     {
         "name": "search_restaurants",
         "description": (
-            "Search the curated restaurant guide (66 restaurants). "
-            "Filter by area, cuisine type, or partner status."
+            "Search our curated restaurant guide. "
+            "Filter by area, cuisine type, or occasion (best_for). "
+            "You MUST call this tool before recommending any restaurant. Never recommend a restaurant from memory. "
+            "If this tool returns no results or few results, do NOT invent restaurant names. "
+            "Only recommend restaurants returned by this tool. "
+            "IMPORTANT: NO restaurant is walkable from the hotel (Cul de Sac). "
+            "All restaurants require a car (5-25 min drive). Always use access_note and driving_time_min, "
+            "NEVER say 'X minutes walk'."
         ),
         "input_schema": {
             "type": "object",
@@ -81,7 +124,7 @@ TOOLS: list[dict] = [
     # 4 — Beaches
     {
         "name": "search_beaches",
-        "description": "Search the beach guide (22 beaches). Filter by side (french/dutch).",
+        "description": "Search our curated beach guide. Filter by side (french/dutch) or activity.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -98,29 +141,18 @@ TOOLS: list[dict] = [
             "required": [],
         },
     },
-    # 5 — Activities
-    {
-        "name": "search_activities",
-        "description": "Search activities and excursions (41 options). Filter by category.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string",
-                    "enum": [
-                        "water_sport", "boat_trip", "island_trip", "land_activity",
-                        "wellness", "shopping", "nightlife", "cultural", "family",
-                    ],
-                    "description": "Activity category",
-                },
-            },
-            "required": [],
-        },
-    },
-    # 6 — Hotel services
+    # 5 — Hotel services
     {
         "name": "get_hotel_services",
-        "description": "Get hotel services with prices (36 services). Filter by category.",
+        "description": (
+            "Get hotel services with exact prices. Use this tool for: "
+            "extra bed price (room_extra), child supplement (room_extra), "
+            "airport transfers (transport), breakfast (dining), "
+            "massage/yoga (wellness), kayak/paddle (activity), "
+            "laundry (concierge), baby-sitting (concierge), "
+            "private events (event). "
+            "You MUST call this tool before quoting any service price."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
@@ -136,10 +168,36 @@ TOOLS: list[dict] = [
             "required": [],
         },
     },
+    # 6 — Activities & excursions
+    {
+        "name": "search_activities",
+        "description": (
+            "Search activities and excursions available on Saint-Martin. "
+            "Includes water sports, boat trips, island excursions, land activities, "
+            "wellness, shopping, nightlife, cultural visits, and family activities. "
+            "Returns operator name, location, prices, duration, and booking requirements. "
+            "You MUST call this tool before recommending any activity or excursion."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "water_sport", "boat_trip", "island_trip",
+                        "land_activity", "wellness", "shopping",
+                        "nightlife", "cultural", "family",
+                    ],
+                    "description": "Activity category filter",
+                },
+            },
+            "required": [],
+        },
+    },
     # 7 — FAQ
     {
         "name": "search_faq",
-        "description": "Search frequently asked questions (15 FAQ entries). Filter by category.",
+        "description": "Search frequently asked questions. Filter by category.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -169,7 +227,12 @@ TOOLS: list[dict] = [
     # 9 — Partners
     {
         "name": "get_partner_info",
-        "description": "Get information about trusted hotel partners (car rental, excursions, etc.).",
+        "description": "Get INTERNAL information about hotel partners (car rental, boat tours, gym, etc.). "
+            "CRITICAL: Partner names are CONFIDENTIAL — NEVER include them in the client response. "
+            "The hotel loses its commission if guests contact partners directly. "
+            "In your reply to the guest, use generic terms: 'our boat partner', 'a nearby gym', "
+            "'our car rental partner'. Use partner names ONLY in request_team_action calls for internal team follow-up. "
+            "DO NOT invent capabilities, destinations, or travel times not explicitly stated in the partner data.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -238,6 +301,68 @@ TOOLS: list[dict] = [
                 },
             },
             "required": [],
+        },
+    },
+    # 13 — Check availability range (night-by-night)
+    {
+        "name": "check_availability_range",
+        "description": (
+            "Check room availability night-by-night over a date range. "
+            "Returns a table showing which nights have availability, at what price, and how many rooms left. "
+            "Use this when the hotel is full on the guest's exact dates and you need to find partial availability "
+            "or nearby dates for a counter-proposal. Maximum 14 nights. "
+            "This is optimized — it makes a single API call for the full range. "
+            "All dates MUST be in the future (2026 or later)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "start_date": {
+                    "type": "string",
+                    "description": "Start of the range to check (YYYY-MM-DD). Can be 1-2 days before the guest's requested dates.",
+                },
+                "end_date": {
+                    "type": "string",
+                    "description": "End of the range to check (YYYY-MM-DD). Can be 1-2 days after the guest's requested dates.",
+                },
+            },
+            "required": ["start_date", "end_date"],
+        },
+    },
+    # 14 — Request team action
+    {
+        "name": "request_team_action",
+        "description": (
+            "Request an action from the hotel team (Emmanuel/Marion). "
+            "Use this when you promise the guest that someone will contact them, "
+            "introduce them to a partner, or when an action requires a human "
+            "(e.g. 'Contact the car rental partner to arrange a vehicle for the guest', "
+            "'I'll ask the team to check on this'). "
+            "The team will receive a notification with your request. "
+            "You MUST call this tool whenever your response implies a follow-up action by the team."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "description": "What needs to be done (e.g. 'Contact Escale Car Rental to arrange a car for the guest')",
+                },
+                "partner_name": {
+                    "type": "string",
+                    "description": "Name of the partner to contact, if applicable",
+                },
+                "guest_name": {
+                    "type": "string",
+                    "description": "Guest name for context",
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": ["normal", "urgent"],
+                    "description": "Urgency level (default: normal)",
+                },
+            },
+            "required": ["action"],
         },
     },
 ]

@@ -63,16 +63,6 @@ class EscalationReason(StrEnum):
     OTHER = "other"
 
 
-class CorrectionType(StrEnum):
-    TONE = "tone"
-    FACTUAL = "factual"
-    MISSING_INFO = "missing_info"
-    WRONG_INFO = "wrong_info"
-    GRAMMAR = "grammar"
-    POLICY = "policy"
-    OTHER = "other"
-
-
 class RuleType(StrEnum):
     RESPONSE = "response"
     ESCALATION = "escalation"

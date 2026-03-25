@@ -137,9 +137,9 @@ INSERT INTO activities (name_fr, name_en, category, operator, location, distance
  ARRAY['luxury', 'romantic', 'honeymoon', 'photography'], TRUE, 29),
 
 -- ═══ WELLNESS ═══
-('Yoga privé à l''hôtel', 'Private yoga at hotel', 'wellness', 'Le Martin Hotel', 'Hôtel', 0, 104, 104, '1h', NULL, NULL,
- 'Cours privé au jardin, sur paddle ou au bord de la piscine. 104€/séance.',
- 'Private class in garden, on paddleboard or poolside. €104/session.',
+('Yoga privé à l''hôtel', 'Private yoga at hotel', 'wellness', 'Le Martin Hotel', 'Hôtel', 0, 110, 110, '1h', NULL, NULL,
+ 'Cours privé au jardin, sur paddle ou au bord de la piscine. 110€/séance.',
+ 'Private class in garden, on paddleboard or poolside. €110/session.',
  ARRAY['wellness', 'couples'], TRUE, 30),
 
 ('Spa Gaia', 'Gaia Spa', 'wellness', 'Gaia Spa', 'Cul de Sac', 1.5, 80, 200, '1-2h', NULL, NULL,

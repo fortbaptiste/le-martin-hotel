@@ -21,7 +21,7 @@ INSERT INTO practical_info (category, name, address, phone, distance_km, driving
 ('health', 'Pharmacie Cul de Sac', 'Route de Cul de Sac', NULL, 1.5, 2, 'Lun-Sam 8h-19h', 'Pharmacie la plus proche de l''hôtel', 11),
 
 -- Aéroports
-('airport', 'Aéroport Princess Juliana (SXM)', 'Simpson Bay, côté hollandais', NULL, 15.0, 25, '24/7', 'Aéroport international principal. 27+ compagnies aériennes. Vols directs USA, Europe, Caraïbes. Shuttle hôtel : 75€.', 20),
+('airport', 'Aéroport Princess Juliana (SXM)', 'Simpson Bay, côté hollandais', NULL, 30.0, 60, '24/7', 'Aéroport international principal. 27+ compagnies aériennes. Vols directs USA, Europe, Caraïbes. Compter environ 1 heure de route depuis l''hôtel. Shuttle hôtel : 75€.', 20),
 ('airport', 'Aéroport Grand Case-Espérance (SFG)', 'Grand Case, côté français', NULL, 6.0, 10, 'Horaires de vol', 'Aéroport régional. Vols vers St-Barth (15 min), Guadeloupe. Pratique pour arrivées inter-îles.', 21),
 
 -- Transport
@@ -79,8 +79,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 4),
 
 ('Comment rejoindre l''île Pinel ?', 'How do I get to Pinel Island?',
- 'Depuis l''hôtel, c''est très simple ! Le dock est à 20 secondes à pied. Option 1 : Ferry (10€ A/R, toutes les 30 min, 5 min de traversée). Option 2 : Nos kayaks gratuits (20-25 min de pagaie). On recommande d''y aller le matin pour le snorkeling avec les tortues.',
- 'From the hotel, it''s very easy! The dock is a 20-second walk. Option 1: Ferry (€10 round trip, every 30 min, 5-min crossing). Option 2: Our free kayaks (20-25 min paddle). We recommend going in the morning for turtle snorkeling.',
+ 'Deux options ! Option 1 : Le petit ferry depuis le dock de Cul de Sac (2-3 min en voiture ou 15 min à pied depuis l''hôtel, 10€ A/R, toutes les 30 min, 5 min de traversée). Option 2 : Nos kayaks gratuits depuis le petit dock en face de l''hôtel (1 min à pied, 20-25 min de pagaie). On recommande d''y aller le matin pour le snorkeling avec les tortues.',
+ 'Two options! Option 1: The small ferry from the Cul de Sac dock (2-3 min drive or 15 min walk from the hotel, €10 round trip, every 30 min, 5-min crossing). Option 2: Our free kayaks from the small dock in front of the hotel (1 min walk, 20-25 min paddle). We recommend going in the morning for turtle snorkeling.',
  'activity', 5),
 
 ('Quelle est la politique d''annulation ?', 'What is the cancellation policy?',
@@ -89,8 +89,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 6),
 
 ('Proposez-vous un transfert aéroport ?', 'Do you offer airport transfers?',
- 'Oui, nous organisons des transferts privés depuis/vers l''aéroport Princess Juliana (SXM) pour 75€ par trajet. Le trajet dure environ 20-30 minutes.',
- 'Yes, we arrange private transfers to/from Princess Juliana Airport (SXM) for €75 per trip. The journey takes approximately 20-30 minutes.',
+ 'Oui, nous organisons des transferts privés depuis/vers l''aéroport Princess Juliana (SXM) pour 75€ par trajet. Il faut compter environ 1 heure de route. Depuis l''aéroport régional de Grand Case (SFG), c''est seulement 10 minutes.',
+ 'Yes, we arrange private transfers to/from Princess Juliana Airport (SXM) for €75 per trip. The journey takes approximately 1 hour. From Grand Case regional airport (SFG), it''s only 10 minutes.',
  'transport', 7),
 
 ('Avez-vous une piscine ?', 'Do you have a pool?',
@@ -104,13 +104,13 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'policy', 9),
 
 ('Proposez-vous des activités nautiques ?', 'Do you offer water activities?',
- 'Oui, et gratuitement ! Kayaks, stand-up paddles et équipement de snorkeling sont à disposition. Le dock est à 20 secondes de l''hôtel. Vous pouvez pagayer jusqu''à l''île Pinel en 20 minutes !',
- 'Yes, and they''re free! Kayaks, stand-up paddle boards and snorkeling gear are available. The dock is 20 seconds from the hotel. You can paddle to Pinel Island in 20 minutes!',
+ 'Oui, et gratuitement ! Kayaks, stand-up paddles et équipement de snorkeling sont à disposition. Le petit dock est à 1 minute à pied de l''hôtel. Vous pouvez pagayer jusqu''à l''île Pinel en 20-25 minutes ! Vous pouvez aussi rejoindre Orient Bay à pied le long de la côte en 15-20 minutes.',
+ 'Yes, and they''re free! Kayaks, stand-up paddle boards and snorkeling gear are available. The small dock is a 1-minute walk from the hotel. You can paddle to Pinel Island in 20-25 minutes! You can also walk to Orient Bay along the coast in 15-20 minutes.',
  'activity', 10),
 
 ('L''hôtel est-il adapté aux familles ?', 'Is the hotel family-friendly?',
- 'Absolument ! Notre Suite Familiale (Marcelle & Pierre, 52 m²) combine 2 chambres communicantes avec 2 salles de bain — parfaite pour les familles. Lits bébé et lits d''appoint disponibles. Les enfants de tous âges sont les bienvenus.',
- 'Absolutely! Our Family Suite (Marcelle & Pierre, 52 m²) combines 2 connecting rooms with 2 bathrooms — perfect for families. Cots and extra beds available. Children of all ages are welcome.',
+ 'Absolument ! Notre Suite Familiale (52 m²) combine 2 chambres communicantes avec 2 salles de bain — parfaite pour les familles. Lits bébé et lits d''appoint disponibles (supplément 150€/nuit par enfant). Les enfants de tous âges sont les bienvenus.',
+ 'Absolutely! Our Family Suite (52 m²) combines 2 connecting rooms with 2 bathrooms — perfect for families. Cots and extra beds available (€150/night per child supplement). Children of all ages are welcome.',
  'general', 11),
 
 ('Avez-vous un restaurant ?', 'Do you have a restaurant?',
@@ -129,8 +129,8 @@ INSERT INTO faq (question_fr, question_en, answer_fr, answer_en, category, sort_
  'general', 14),
 
 ('Quels restaurants recommandez-vous ?', 'Which restaurants do you recommend?',
- 'Cela dépend de vos envies ! Pour une soirée gastronomique : Le Pressoir ou La Villa Hibiscus. Pour une ambiance beach : Kontiki ou Calmos Café. Pour découvrir la cuisine locale : les lolos de Grand Case (Sky''s the Limit). Pour un dîner romantique : Spiga ou Ocean 82. Marion sera ravie de vous faire des recommandations personnalisées et de réserver pour vous !',
- 'It depends on what you''re in the mood for! Gourmet evening: Le Pressoir or La Villa Hibiscus. Beach vibe: Kontiki or Calmos Café. Local cuisine: Grand Case lolos (Sky''s the Limit). Romantic dinner: Spiga or Ocean 82. Marion will be happy to give personalized recommendations and book for you!',
+ 'Cela dépend de vos envies ! L''île regorge d''excellents restaurants dans plusieurs quartiers : Grand Case (la « capitale gastronomique »), Orient Bay, Marigot et d''autres. Marion & Emmanuel seront ravis de vous faire des recommandations personnalisées selon vos goûts et de réserver pour vous !',
+ 'It depends on what you''re in the mood for! The island is full of excellent restaurants in several areas: Grand Case (the "gourmet capital"), Orient Bay, Marigot and more. Marion & Emmanuel will be happy to give personalized recommendations based on your preferences and book for you!',
  'dining', 15);
 
 
@@ -148,12 +148,13 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 ('Problème de paiement', 'escalation', 'Le client mentionne un problème de paiement, lien cassé, montant incorrect', 'Escalader immédiatement. L''IA ne gère PAS les paiements.', 95, TRUE),
 ('Hors périmètre', 'escalation', 'Le sujet n''est pas lié à l''hôtel ou au séjour (partenariat, presse, emploi)', 'Escalader à Emmanuel.', 80, TRUE),
 ('Doute IA', 'escalation', 'Le score de confiance de l''IA est inférieur à 0.7', 'Escalader plutôt que de risquer une réponse incorrecte.', 85, TRUE),
+('Incohérence réservation', 'escalation', 'Les données Thais (dates, chambre, nb personnes) ne correspondent pas à ce que le client affirme (ex: le client dit avoir ajouté des enfants mais Thais montre 2 adultes)', 'Ne PAS proposer de solutions ni corriger. Répondre que l''on vérifie sa réservation et qu''on revient très vite vers lui. Escalader à l''équipe pour vérification manuelle.', 95, TRUE),
 ('Action physique requise', 'escalation', 'Le client demande une réservation restaurant, transfert, ou arrangement nécessitant une action physique', 'Confirmer au client que c''est noté, puis notifier l''équipe (equipe@lemartinhotel.com) pour exécution.', 75, TRUE),
 
 -- Response rules
-('Famille détectée', 'response', 'Le client mentionne enfants, famille, bébé, ou 3-4 personnes', 'Suggérer automatiquement la Suite Familiale (Marcelle & Pierre, 52 m², 2 chambres communicantes).', 70, TRUE),
-('Lune de miel détectée', 'response', 'Le client mentionne lune de miel, honeymoon, mariage, anniversaire de mariage', 'Proposer le forfait Lune de Miel (Suite René, champagne, fleurs) et mentionner les expériences romantiques.', 70, TRUE),
-('PMR détectée', 'response', 'Le client mentionne mobilité réduite, fauteuil roulant, handicap, accessibility', 'Recommander la Suite Marius (RDC, accès PMR, douche adaptée, entrée privée).', 80, TRUE),
+('Famille détectée', 'response', 'Le client mentionne enfants, famille, bébé, ou 3-4 personnes', 'Suggérer automatiquement la Suite Familiale (52 m², 2 chambres communicantes). Supplément enfant : 150€/nuit.', 70, TRUE),
+('Lune de miel détectée', 'response', 'Le client mentionne lune de miel, honeymoon, mariage, anniversaire de mariage', 'Proposer le forfait Lune de Miel (Suite Deluxe vue mer panoramique, champagne, fleurs) et mentionner les expériences romantiques.', 70, TRUE),
+('PMR détectée', 'response', 'Le client mentionne mobilité réduite, fauteuil roulant, handicap, accessibility', 'Recommander la Suite vue jardin avec grande terrasse au RDC (accès PMR, douche adaptée, entrée privée).', 80, TRUE),
 ('Demande de disponibilité', 'response', 'Le client demande la disponibilité pour des dates spécifiques', 'Consulter l''API Thais pour les disponibilités et tarifs exacts du jour. Ne JAMAIS inventer un prix.', 90, TRUE),
 ('Dates flexibles', 'response', 'Le client ne donne pas de dates précises mais demande des infos générales', 'Donner les fourchettes de prix (à partir de 294€/nuit) et inviter à préciser les dates pour un tarif exact.', 60, TRUE),
 ('Restaurant demandé', 'response', 'Le client demande une recommandation de restaurant', 'Utiliser la table restaurants pour recommander selon le profil (romantique, famille, budget, cuisine). Proposer de réserver.', 65, TRUE),
@@ -165,7 +166,7 @@ INSERT INTO ai_rules (rule_name, rule, condition_text, action_text, priority, is
 ('Ton français', 'tone', 'Email en français détecté', 'Répondre en français. Vouvoiement. Ton chaleureux et professionnel. Mentionner le prénom du client.', 100, TRUE),
 
 -- Signature rules
-('Signature email', 'signature', 'Toutes les réponses sortantes', 'Signer : Marion / Le Martin Boutique Hotel / Cul de Sac, Saint-Martin', 100, TRUE),
+('Signature email', 'signature', 'Toutes les réponses sortantes', 'Signer : Marion & Emmanuel / Le Martin Boutique Hotel / Cul de Sac, Saint-Martin', 100, TRUE),
 
 -- Availability rules
 ('Fermeture annuelle', 'availability', 'Demande pour des dates entre le 15 août et le 30 septembre', 'Informer poliment que l''hôtel est fermé du 15 août au 30 septembre (saison cyclonique) et que nous rouvrons le 1er octobre. Proposer les dates les plus proches disponibles.', 95, TRUE),
